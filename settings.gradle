@@ -1,3 +1,4 @@
 rootProject.name = 'delivery'
 
 include 'order'
+include 'snowflake'
