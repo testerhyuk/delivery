@@ -1,0 +1,13 @@
+services:
+  postgresql:
+    image: postgres:18
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: hyuk
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: delivery_eum
+    volumes:
+      - ./data/pgdata:/var/lib/postgresql
+      - ./data/postgres:/docker-entrypoint-initdb.d
