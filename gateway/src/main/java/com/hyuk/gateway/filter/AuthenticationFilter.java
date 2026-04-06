@@ -43,8 +43,10 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
             if (path.contains("/v3/api-docs") ||
                     path.contains("/login") ||
-                    path.startsWith("/oauth2") ||
-                    path.contains("/favicon.ico")) {
+                    path.contains("/oauth2") ||
+                    path.contains("/auth/success")
+            ) {
+                log.info("Whitelist path detected, skipping filter: {}", path);
                 return chain.filter(exchange);
             }
 

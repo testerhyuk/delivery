@@ -34,15 +34,19 @@ public class OAuth2Attributes {
     }
 
     private static OAuth2Attributes ofNaver(String userNameAttributeName, Map<String, Object> attributes) {
-        Map<String, Object> response = (Map<String, Object>) attributes.get("response");
+        Object responseObj = attributes.get("response");
 
-        return OAuth2Attributes.builder()
-                .name((String) response.get("name"))
-                .email((String) response.get("email"))
-                .provider("naver")
-                .providerId((String) response.get("id"))
-                .attributes(response)
-                .nameAttributeKey(userNameAttributeName)
-                .build();
+        if (responseObj instanceof Map<?, ?> response) {
+            return OAuth2Attributes.builder()
+                    .name(String.valueOf(response.get("name")))
+                    .email(String.valueOf(response.get("email")))
+                    .provider("naver")
+                    .providerId(String.valueOf(response.get("id")))
+                    .attributes(attributes) // 원본 유지
+                    .nameAttributeKey(userNameAttributeName)
+                    .build();
+        }
+
+        throw new IllegalArgumentException("Naver 응답 형식이 올바르지 않습니다.");
     }
 }
