@@ -27,14 +27,10 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
-        System.out.println("########## OAuth2SuccessHandler 진입 성공 ##########");
-
         try {
             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
             String registrationId = ((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId();
-            System.out.println(">>> Registration ID: " + registrationId);
-
             String userNameAttributeName = registrationId.equals("naver") ? "response" : "sub";
             OAuth2Attributes attributes = OAuth2Attributes.of(registrationId, userNameAttributeName, oAuth2User.getAttributes());
 
@@ -46,13 +42,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             );
 
             String token = jwtTokenProvider.createToken(member.getId(), member.getRoles());
-            System.out.println(">>> generated Token: " + token);
 
-            String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:8000/auth/success")
-                    .queryParam("token", token)
-                    .build().toUriString();
-
-            getRedirectStrategy().sendRedirect(request, response, targetUrl);
+            response.addHeader("Set-Cookie","accessToken=" + token + "; HttpOnly; Path=/; Max-Age=3600");
+            response.sendRedirect("http://localhost:8000/auth/success");
 
         } catch (Exception e) {
             log.error(e.getMessage());

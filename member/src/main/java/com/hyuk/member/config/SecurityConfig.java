@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final GatewayHeaderFilter gatewayHeaderFilter;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -29,7 +30,7 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth -> oauth
                         .authorizationEndpoint(endpoint -> endpoint.baseUri("/oauth2/authorization"))
-                        .defaultSuccessUrl("/auth/success", true)
+                        .successHandler(oAuth2SuccessHandler)
                 )
                 .addFilterBefore(gatewayHeaderFilter, UsernamePasswordAuthenticationFilter.class);
 
