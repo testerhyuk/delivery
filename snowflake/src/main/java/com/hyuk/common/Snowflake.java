@@ -1,7 +1,10 @@
 package com.hyuk.common;
 
+import org.springframework.stereotype.Component;
+
 import java.util.random.RandomGenerator;
 
+@Component
 public class Snowflake {
     private static final int UNUSED_BITS = 1;
     private static final int EPOCH_BITS = 41;

@@ -1,12 +1,13 @@
 package com.hyuk.gateway.filter;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
-import org.springframework.core.env.Environment;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -19,15 +20,18 @@ import reactor.core.publisher.Mono;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
 public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> {
-    private final Environment env;
 
-    public AuthenticationFilter(Environment env) {
+    @Value("${TOKEN_SECRET}")
+    private String secret;
+
+    public AuthenticationFilter() {
         super(Config.class);
-        this.env = env;
     }
 
     public static class Config {}
@@ -36,16 +40,17 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             String path = exchange.getRequest().getURI().getPath();
-            if (path.contains("/v3/api-docs")) {
+
+            if (path.contains("/v3/api-docs") ||
+                    path.contains("/login") ||
+                    path.startsWith("/oauth2") ||
+                    path.contains("/favicon.ico")) {
                 return chain.filter(exchange);
             }
 
-            String secret = env.getProperty("token.secret");
-
             if (secret == null) {
-                log.error("Can't load token.secret from Config Server");
-
-                return onError(exchange, "Ineternal Server Error : Config Missing", HttpStatus.INTERNAL_SERVER_ERROR);
+                log.error("Config Missing: TOKEN_SECRET is null");
+                return onError(exchange, "Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
             ServerHttpRequest request = exchange.getRequest();
@@ -57,15 +62,26 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
             String authorizationHeader = request.getHeaders().get(HttpHeaders.AUTHORIZATION).get(0);
             String jwt = authorizationHeader.replace("Bearer ", "");
 
-            String userId = getSubjectIfValid(jwt);
-            log.info("검증 결과 userId: [{}]", userId);
-
-            if (userId == null) {
-                log.error("필터에서 401 반환: userId가 null임");
+            Claims claims = getClaimsIfValid(jwt);
+            if (claims == null) {
                 return onError(exchange, "Invalid JWT token", HttpStatus.UNAUTHORIZED);
             }
-            log.info("검증 성공, 다음 필터로 진행");
-            ServerHttpRequest newRequest = request.mutate().header("userId", userId).build();
+
+            String userId = claims.getSubject();
+            Object rolesObj = claims.get("roles");
+            String rolesStr = "";
+            if (rolesObj instanceof List<?>) {
+                rolesStr = ((List<?>) rolesObj).stream()
+                        .map(String::valueOf)
+                        .collect(Collectors.joining(","));
+            }
+
+            log.info("인증 통과 - ID: {}, Roles: {}", userId, rolesStr);
+
+            ServerHttpRequest newRequest = request.mutate()
+                    .header("userId", userId)
+                    .header("userRoles", rolesStr)
+                    .build();
 
             return chain.filter(exchange.mutate().request(newRequest).build());
         };
@@ -74,32 +90,21 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus status) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(status);
-        log.error(err);
+        log.error("인증 실패: {} (Path: {})", err, exchange.getRequest().getURI().getPath());
 
-        byte[] bytes = "The requested token is invalid".getBytes(StandardCharsets.UTF_8);
-        DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(bytes);
-
+        byte[] bytes = "The requested token is invalid or missing".getBytes(StandardCharsets.UTF_8);
+        DataBuffer buffer = response.bufferFactory().wrap(bytes);
         return response.writeWith(Flux.just(buffer));
     }
 
-    private String getSubjectIfValid(String jwt) {
+    private Claims getClaimsIfValid(String jwt) {
         try {
-            String secret = env.getProperty("token.secret");
-
             byte[] secretKeyBytes = secret.getBytes(StandardCharsets.UTF_8);
             SecretKey signingKey = Keys.hmacShaKeyFor(secretKeyBytes);
-
             JwtParser parser = Jwts.parser().verifyWith(signingKey).build();
-            return parser.parseSignedClaims(jwt).getPayload().getSubject();
-
-        } catch (io.jsonwebtoken.security.SignatureException e) {
-            log.error("비교 결과: 서명 불일치 (토큰 생성 키와 다름)");
-            return null;
-        } catch (io.jsonwebtoken.ExpiredJwtException e) {
-            log.error("비교 결과: 토큰 만료");
-            return null;
+            return parser.parseSignedClaims(jwt).getPayload();
         } catch (Exception e) {
-            log.error("기타 오류: {}", e.getMessage());
+            log.error("JWT 검증 에러: {}", e.getMessage());
             return null;
         }
     }
