@@ -41,15 +41,6 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
         return (exchange, chain) -> {
             String path = exchange.getRequest().getURI().getPath();
 
-            if (path.contains("/v3/api-docs") ||
-                    path.contains("/login") ||
-                    path.contains("/oauth2") ||
-                    path.contains("/auth/success")
-            ) {
-                log.info("Whitelist path detected, skipping filter: {}", path);
-                return chain.filter(exchange);
-            }
-
             if (secret == null) {
                 log.error("Config Missing: TOKEN_SECRET is null");
                 return onError(exchange, "Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);

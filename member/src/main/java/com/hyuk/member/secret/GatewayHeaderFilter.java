@@ -1,4 +1,4 @@
-package com.hyuk.member.config;
+package com.hyuk.member.secret;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

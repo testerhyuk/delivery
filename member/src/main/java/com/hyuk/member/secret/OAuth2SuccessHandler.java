@@ -1,9 +1,11 @@
 package com.hyuk.member.secret;
 
+import com.hyuk.member.dto.MemberResponse;
 import com.hyuk.member.dto.OAuth2Attributes;
 import com.hyuk.member.entity.MemberEntity;
 import com.hyuk.member.repository.MemberRepository;
 import com.hyuk.member.service.MemberService;
+import com.hyuk.member.service.RefreshTokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -24,31 +27,40 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final JwtTokenProvider jwtTokenProvider;
     private final MemberService memberService;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         try {
-            OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+            OAuth2AuthenticationToken authToken = (OAuth2AuthenticationToken) authentication;
+            OAuth2User oAuth2User = authToken.getPrincipal();
 
-            String registrationId = ((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId();
+            String memberType = (String) oAuth2User.getAttributes().get("member_type");
+
+            if (memberType == null) memberType = "user";
+
+            log.info("추출된 로그인 타입: {}", memberType);
+
+            Map<String, Object> rawAttributes = oAuth2User.getAttributes();
+            String registrationId = authToken.getAuthorizedClientRegistrationId();
             String userNameAttributeName = registrationId.equals("naver") ? "response" : "sub";
-            OAuth2Attributes attributes = OAuth2Attributes.of(registrationId, userNameAttributeName, oAuth2User.getAttributes());
+            OAuth2Attributes oAuth2Attributes = OAuth2Attributes.of(registrationId, userNameAttributeName, rawAttributes);
 
-            var member = memberService.joinUser(
-                    attributes.getEmail(),
-                    attributes.getName(),
-                    attributes.getProvider(),
-                    attributes.getProviderId()
-            );
+            MemberResponse member = "rider".equals(memberType) ?
+                    memberService.joinRider(oAuth2Attributes.getEmail(), oAuth2Attributes.getName(), oAuth2Attributes.getProvider(), oAuth2Attributes.getProviderId()) :
+                    memberService.joinUser(oAuth2Attributes.getEmail(), oAuth2Attributes.getName(), oAuth2Attributes.getProvider(), oAuth2Attributes.getProviderId());
 
-            String token = jwtTokenProvider.createToken(member.getId(), member.getRoles());
+            String accessToken = jwtTokenProvider.createToken(member.getId(), member.getRoles());
+            String refreshToken = jwtTokenProvider.createRefreshToken(member.getId());
 
-            response.addHeader("Set-Cookie","accessToken=" + token + "; HttpOnly; Path=/; Max-Age=3600");
+            refreshTokenService.saveRefreshToken(member.getId(), refreshToken, jwtTokenProvider.getExpiration(refreshToken));
+
+            response.addHeader("Set-Cookie", "accessToken=" + accessToken + "; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax");
             response.sendRedirect("http://localhost:8000/auth/success");
 
         } catch (Exception e) {
-            log.error(e.getMessage());
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "인증 후 처리 실패");
+            log.error("인증 처리 실패: ", e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 }
