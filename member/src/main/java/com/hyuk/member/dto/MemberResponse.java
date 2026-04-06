@@ -12,5 +12,7 @@ public class MemberResponse {
     private Long id;
     private String email;
     private String name;
+    private String address;
+    private String detailAddress;
     private Set<Role> roles;
 }

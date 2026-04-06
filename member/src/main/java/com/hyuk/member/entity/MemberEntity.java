@@ -27,6 +27,9 @@ public class MemberEntity {
     @Column(unique = true)
     private String providerId;
 
+    private String address;
+    private String detailAddress;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "member_roles", joinColumns = @JoinColumn(name = "member_id"))
     @Enumerated(EnumType.STRING)
@@ -60,5 +63,15 @@ public class MemberEntity {
 
     public void addRole(Role role) {
         this.roles.add(role);
+    }
+
+    public void addAddress(String address, String detailAddress) {
+        this.address = address;
+        this.detailAddress = detailAddress;
+    }
+
+    public void updateAddress(String address, String detailAddress) {
+        this.address = address;
+        this.detailAddress = detailAddress;
     }
 }
