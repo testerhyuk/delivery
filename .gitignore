@@ -35,3 +35,9 @@ out/
 
 ### VS Code ###
 .vscode/
+/order/.env
+
+/data/pgdata
+/gateway/.env
+/restaurant/.env
+/member/.env
