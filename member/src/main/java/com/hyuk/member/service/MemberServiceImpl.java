@@ -1,6 +1,7 @@
 package com.hyuk.member.service;
 
 import com.hyuk.common.Snowflake;
+import com.hyuk.member.dto.AddressResponse;
 import com.hyuk.member.dto.MemberResponse;
 import com.hyuk.member.entity.MemberEntity;
 import com.hyuk.member.entity.enums.Role;
@@ -71,5 +72,16 @@ public class MemberServiceImpl implements MemberService {
         member.updateAddress(address, detailAddress);
 
         return modelMapper.map(member, MemberResponse.class);
+    }
+
+    @Override
+    public AddressResponse getAddress(Long id) {
+        MemberEntity member = memberRepository.findById(id).orElse(null);
+
+        if (member == null) {
+            throw new RuntimeException("회원 정보를 찾을 수 없습니다");
+        }
+
+        return modelMapper.map(member, AddressResponse.class);
     }
 }
