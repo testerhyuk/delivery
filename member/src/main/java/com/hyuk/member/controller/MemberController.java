@@ -1,6 +1,7 @@
 package com.hyuk.member.controller;
 
 import com.hyuk.member.dto.AddressRequest;
+import com.hyuk.member.dto.AddressResponse;
 import com.hyuk.member.dto.MemberResponse;
 import com.hyuk.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
@@ -33,5 +34,12 @@ public class MemberController {
         MemberResponse member = memberService.updateAddress(Long.valueOf(userId), request.getAddress(), request.getDetailAddress());
 
         return ResponseEntity.status(HttpStatus.OK).body(member);
+    }
+
+    @GetMapping("/addresses")
+    public ResponseEntity<AddressResponse> getAddresses(@RequestHeader("userId") String userId) {
+        AddressResponse address = memberService.getAddress(Long.valueOf(userId));
+
+        return ResponseEntity.status(HttpStatus.OK).body(address);
     }
 }
