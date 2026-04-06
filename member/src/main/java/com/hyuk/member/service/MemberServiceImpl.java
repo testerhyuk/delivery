@@ -7,6 +7,7 @@ import com.hyuk.member.entity.enums.Role;
 import com.hyuk.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +43,32 @@ public class MemberServiceImpl implements MemberService {
                 .orElseGet(() -> memberRepository.save(MemberEntity.createRiderMember(
                         snowflake.nextId(), email, name, provider, providerId
                 )));
+
+        return modelMapper.map(member, MemberResponse.class);
+    }
+
+    @Override
+    public MemberResponse createAddress(Long id, String address, String detailAddress) {
+        MemberEntity member = memberRepository.findById(id).orElse(null);
+
+        if (member == null) {
+            throw new UsernameNotFoundException("회원 정보를 찾을 수 없습니다");
+        }
+
+        member.addAddress(address, detailAddress);
+
+        return modelMapper.map(member, MemberResponse.class);
+    }
+
+    @Override
+    public MemberResponse updateAddress(Long id, String address, String detailAddress) {
+        MemberEntity member = memberRepository.findById(id).orElse(null);
+
+        if (member == null) {
+            throw new UsernameNotFoundException("회원 정보를 찾을 수 없습니다");
+        }
+
+        member.updateAddress(address, detailAddress);
 
         return modelMapper.map(member, MemberResponse.class);
     }
