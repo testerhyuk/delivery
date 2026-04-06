@@ -1,0 +1,92 @@
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          httpclient:
+            connect-timeout: 1000
+            response-timeout: 5s
+          routes:
+            # 주문
+            - id: order-service
+              uri: http://localhost:9091
+              predicates:
+                - Path=/order-service/**
+              filters:
+                - AuthenticationFilter
+            # 음식점
+            - id: restaurant-service
+              uri: http://localhost:9092
+              predicates:
+                - Path=/restaurant-service/**
+            # 회원
+            - id: user-service
+              uri: http://localhost:9093
+              predicates:
+                - Path=/user-service/**
+            # 결제
+            - id: pay-service
+              uri: http://localhost:9094
+              predicates:
+                - Path=/pay-service/**
+              filters:
+                - AuthenticationFilter
+            # 배달 기사
+            - id: rider-service
+              uri: http://localhost:9095
+              predicates:
+                - Path=/rider-service/**
+              filters:
+                - AuthenticationFilter
+            # 정산
+            - id: settlement-service
+              uri: http://localhost:9096
+              predicates:
+                - Path=/settlement-service/**
+              filters:
+                - AuthenticationFilter
+            # 검색
+            - id: search-service
+              uri: http://localhost:9097
+              predicates:
+                - Path=/search-service/**
+            # 알림
+            - id: notification-service
+              uri: http://localhost:9098
+              predicates:
+                - Path=/notification-service/**
+              filters:
+                - AuthenticationFilter
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: 01. 주문 (Order)
+        url: /order-service/v3/api-docs
+      - name: 02. 음식점 (Restaurant)
+        url: /restaurant-service/v3/api-docs
+      - name: 03. 회원 (User)
+        url: /user-service/v3/api-docs
+      - name: 04. 결제 (Pay)
+        url: /pay-service/v3/api-docs
+      - name: 05. 배달기사 (Rider)
+        url: /rider-service/v3/api-docs
+      - name: 06. 정산 (Settlement)
+        url: /settlement-service/v3/api-docs
+      - name: 07. 검색 (Search)
+        url: /search-service/v3/api-docs
+      - name: 08. 알림 (Notification)
+        url: /notification-service/v3/api-docs
+    persist-authorization: true
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    gateway:
+      access: none
