@@ -19,6 +19,10 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  data:
+    redis:
+      host: localhost
+      port: 6379
   security:
     oauth2:
       client:
@@ -44,3 +48,4 @@ spring:
 token:
   secret: ${TOKEN_SECRET}
   expiration-time: 3600000
+  refresh-expiration-time: 604800000

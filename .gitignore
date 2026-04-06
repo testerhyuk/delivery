@@ -41,3 +41,7 @@ out/
 /gateway/.env
 /restaurant/.env
 /member/.env
+/.env
+/data/redis/appendonlydir/appendonly.aof.1.base.rdb
+/data/redis/appendonlydir/appendonly.aof.1.incr.aof
+/data/redis/appendonlydir/appendonly.aof.manifest

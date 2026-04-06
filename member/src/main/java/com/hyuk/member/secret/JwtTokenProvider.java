@@ -28,6 +28,9 @@ public class JwtTokenProvider {
     @Value("${token.expiration-time}")
     private Long tokenValidityInMilliseconds;
 
+    @Value("${token.refresh-expiration-time}")
+    private Long refreshValidityInMilliseconds;
+
     @PostConstruct
     protected void init() {
         byte[] keyBytes = secretKeyString.getBytes(StandardCharsets.UTF_8);
@@ -42,6 +45,25 @@ public class JwtTokenProvider {
                 .expiration(new Date(new Date().getTime() + tokenValidityInMilliseconds))
                 .signWith(key)
                 .compact();
+    }
+
+    public String createRefreshToken(Long memberId) {
+        return Jwts.builder()
+                .subject(String.valueOf(memberId))
+                .issuedAt(new Date())
+                .expiration(new Date(new Date().getTime() + refreshValidityInMilliseconds))
+                .signWith(key)
+                .compact();
+    }
+
+    public Long getExpiration(String token) {
+        Date expiration = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getExpiration();
+        return expiration.getTime() - new Date().getTime();
     }
 
     public Long getMemberId(String token) {

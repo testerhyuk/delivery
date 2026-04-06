@@ -22,11 +22,16 @@ spring:
               uri: http://localhost:9092
               predicates:
                 - Path=/restaurant-service/**
+            # 회원 (인증X)
+            - id: user-public
+              uri: http://localhost:9093
+              predicates:
+                - Path=/login/**, /oauth2/**, /auth/**
             # 회원
             - id: user-service
               uri: http://localhost:9093
               predicates:
-                - Path=/user-service/**, /login/**, /oauth2/**, /auth/success
+                - Path=/user-service/**
               filters:
                 - AuthenticationFilter
             # 결제

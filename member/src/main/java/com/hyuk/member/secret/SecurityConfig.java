@@ -1,6 +1,6 @@
-package com.hyuk.member.config;
+package com.hyuk.member.secret;
 
-import com.hyuk.member.secret.OAuth2SuccessHandler;
+import com.hyuk.member.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -18,6 +19,8 @@ public class SecurityConfig {
 
     private final GatewayHeaderFilter gatewayHeaderFilter;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final ClientRegistrationRepository clientRegistrationRepository;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -25,11 +28,17 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login/**", "/oauth2/**", "/auth/success").permitAll()
+                        .requestMatchers("/login/**", "/oauth2/**", "/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
-                        .authorizationEndpoint(endpoint -> endpoint.baseUri("/oauth2/authorization"))
+                        .authorizationEndpoint(endpoint -> endpoint
+                                .baseUri("/oauth2/authorization")
+                                .authorizationRequestResolver(new CustomOAuth2AuthorizationRequestResolver(clientRegistrationRepository))
+                        )
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                        )
                         .successHandler(oAuth2SuccessHandler)
                 )
                 .addFilterBefore(gatewayHeaderFilter, UsernamePasswordAuthenticationFilter.class);
