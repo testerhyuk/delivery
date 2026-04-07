@@ -126,5 +126,7 @@ public class PayServiceImpl implements PayService {
         }
 
         payRepository.save(entity);
+
+        orderServiceClient.cancelOrder(Long.valueOf(entity.getOrderId()));
     }
 }

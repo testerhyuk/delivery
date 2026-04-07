@@ -2,6 +2,7 @@ package com.hyuk.pay.client;
 
 import com.hyuk.pay.dto.PayConfirmedRequestDto;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -12,4 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface OrderServiceClient {
     @PostMapping("/paid")
     void updatePaid(@RequestBody PayConfirmedRequestDto PayConfirmedRequestDto);
+
+    @PostMapping("/cancel/{orderId}")
+    void cancelOrder(@PathVariable("orderId") Long orderId);
 }
