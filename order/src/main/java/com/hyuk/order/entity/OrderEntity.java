@@ -67,14 +67,6 @@ public class OrderEntity {
         this.orderStatus = OrderStatus.PAID;
     }
 
-    public void updateToAccepted() {
-        this.orderStatus = OrderStatus.ACCEPTED;
-    }
-
-    public void updateToMatching() {
-        this.orderStatus = OrderStatus.MATCHING;
-    }
-
     public void updateToCooking() {
         this.orderStatus = OrderStatus.COOKING;
     }

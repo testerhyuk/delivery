@@ -3,8 +3,6 @@ package com.hyuk.order.entity.enums;
 public enum OrderStatus {
     PENDING, // 결제 대기
     PAID, // 결제 완료
-    ACCEPTED, // 접수
-    MATCHING, // 기사 찾는중
     COOKING, // 조리중
     DELIVERING, // 배달중
     COMPLETED, // 완료
