@@ -1,19 +1,22 @@
 package com.hyuk.pay.service;
 
 import com.hyuk.common.Snowflake;
+import com.hyuk.pay.client.OrderServiceClient;
 import com.hyuk.pay.client.TossPayClient;
-import com.hyuk.pay.dto.RequestOrder;
-import com.hyuk.pay.dto.ResponseOrder;
-import com.hyuk.pay.dto.ResponsePayReady;
+import com.hyuk.pay.dto.*;
 import com.hyuk.pay.entity.PayEntity;
 import com.hyuk.pay.entity.enums.PayStatus;
 import com.hyuk.pay.repository.PayRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -25,6 +28,8 @@ public class PayServiceImpl implements PayService {
     private final TossPayClient tossPayClient;
     private final Snowflake snowflake;
     private final ModelMapper modelMapper;
+    private final OrderServiceClient orderServiceClient;
+    private final PayLogService payLogService;
 
     @Override
     public ResponsePayReady readyPayment(RequestOrder requestOrder) {
@@ -56,28 +61,70 @@ public class PayServiceImpl implements PayService {
     }
 
     @Override
+    @Retryable(
+            retryFor = { feign.RetryableException.class, java.net.ConnectException.class },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public ResponseOrder confirmPayment(RequestOrder requestOrder) {
         PayEntity entity = payRepository.findByOrderId(requestOrder.getOrderId())
                 .orElseThrow(() -> new RuntimeException("결제 정보가 존재하지 않습니다. 주문번호: " + requestOrder.getOrderId()));
+
+        if (PayStatus.CANCELED.equals(entity.getStatus())) {
+            throw new RuntimeException("이미 취소된 주문번호입니다. 새로운 주문이 필요합니다.");
+        }
+
+        if (PayStatus.DONE.equals(entity.getStatus())) {
+            return modelMapper.map(entity, ResponseOrder.class);
+        }
 
         if (!entity.getAmount().equals(requestOrder.getAmount())) {
             throw new RuntimeException(String.format("결제 금액이 다릅니다. 실제 금액 : %d, 요청 금액 : %d",
                     entity.getAmount(), requestOrder.getAmount()));
         }
 
-        try {
-            ResponseOrder response = tossPayClient.confirm(requestOrder);
+        ResponseOrder response = tossPayClient.confirm(requestOrder);
 
-            entity.completedPayment(response.getPaymentKey(), response.getMethod(),
-                    String.valueOf(response.getCard().getNumber()),response.getVat(), response.getApprovedAt());
+        entity.completedPayment(response.getPaymentKey(), response.getMethod(),
+                String.valueOf(response.getCard().getNumber()), response.getVat(), response.getApprovedAt());
 
-            payRepository.save(entity);
+        payRepository.save(entity);
 
-            return response;
-        } catch (Exception e) {
-            log.error("결제 실패 : {}", e.getMessage());
-            entity.failPayment(e.getMessage());
-            throw e;
+        PayConfirmedRequestDto payConfirmedRequestDto = new PayConfirmedRequestDto();
+        payConfirmedRequestDto.setOrderId(response.getOrderId());
+        payConfirmedRequestDto.setPayStatus(String.valueOf(response.getPayStatus()));
+
+        orderServiceClient.updatePaid(payConfirmedRequestDto);
+
+        return response;
+    }
+
+    @Recover
+    public ResponseOrder recover(Exception e, RequestOrder requestOrder) {
+        log.error("결제 최종 실패 (3회 시도 종료) : {}", e.getMessage());
+
+        payRepository.findByOrderId(requestOrder.getOrderId()).ifPresent(entity -> {
+            payLogService.recordFail(
+                    snowflake.nextId(),
+                    entity.getId(),
+                    "최종 실패 사유: " + e.getMessage(),
+                    LocalDateTime.now()
+            );
+        });
+
+        throw new RuntimeException("결제 승인 최종 실패: " + e.getMessage());
+    }
+
+    @Override
+    public void cancelPayment(TossCancelResponse response) {
+        PayEntity entity = payRepository.findByOrderId(response.getOrderId()).orElseThrow(() -> new RuntimeException("결제 정보 없음"));
+
+        if (response.getCancels() != null && !response.getCancels().isEmpty()) {
+            TossCancelResponse.Cancel lastCancel = response.getCancels().getLast();
+
+            entity.cancelPayment(lastCancel.getCancelReason(), LocalDateTime.parse(lastCancel.getCanceledAt()));
         }
+
+        payRepository.save(entity);
     }
 }

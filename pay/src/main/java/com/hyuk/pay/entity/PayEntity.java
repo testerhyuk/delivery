@@ -26,10 +26,11 @@ public class PayEntity {
     private PayStatus status;
     private String method;
     private String cardNumber;
-    private String failReason;
+    private String cancelReason;
     private Long vat;
     private LocalDateTime requestedAt;
     private LocalDateTime approvedAt;
+    private LocalDateTime cancelledAt;
 
     public static PayEntity processPay(Long id, String orderId, Long amount) {
         PayEntity entity = new PayEntity();
@@ -56,12 +57,13 @@ public class PayEntity {
         this.approvedAt = approvedAt;
     }
 
-    public void failPayment(String failReason) {
-        this.status = PayStatus.FAILED;
-        this.failReason = failReason;
-    }
-
     public void updateAmount(Long amount) {
         this.amount = amount;
+    }
+
+    public void cancelPayment(String cancelReason, LocalDateTime cancelledAt) {
+        this.cancelReason = cancelReason;
+        this.cancelledAt = cancelledAt;
+        this.status = PayStatus.CANCELED;
     }
 }

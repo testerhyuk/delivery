@@ -1,5 +1,8 @@
 package com.hyuk.pay.dto;
 
+import lombok.Data;
+
+@Data
 public class ResponsePayReady {
     private Long id;
     private Long orderId;
