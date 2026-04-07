@@ -1,0 +1,21 @@
+server:
+  port: 9094
+
+spring:
+  profiles:
+    active: dev
+  application:
+    name: pay-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/delivery_eum
+    username: hyuk
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
