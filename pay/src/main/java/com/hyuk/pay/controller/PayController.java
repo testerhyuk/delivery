@@ -2,6 +2,7 @@ package com.hyuk.pay.controller;
 
 import com.hyuk.pay.dto.RequestOrder;
 import com.hyuk.pay.dto.ResponseOrder;
+import com.hyuk.pay.dto.ResponsePayReady;
 import com.hyuk.pay.service.PayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,10 +19,10 @@ public class PayController {
     private final PayService payService;
 
     @PostMapping("/pay/ready")
-    public ResponseEntity<Void> readyPayment(@RequestBody RequestOrder requestOrder) {
-        payService.readyPayment(requestOrder);
+    public ResponseEntity<ResponsePayReady> readyPayment(@RequestBody RequestOrder requestOrder) {
+        ResponsePayReady response = payService.readyPayment(requestOrder);
 
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping("/pay/confirm")
