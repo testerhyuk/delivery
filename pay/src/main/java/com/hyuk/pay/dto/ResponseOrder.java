@@ -11,6 +11,7 @@ public class ResponseOrder {
     private String paymentKey;
     private String orderId;
     private String userId;
+    private Long restaurantId;
     private Long totalAmount;
     private PayStatus payStatus;
     private String method;
