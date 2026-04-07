@@ -55,11 +55,6 @@ spring:
                 - Path=/settlement-service/**
               filters:
                 - AuthenticationFilter
-            # 검색
-            - id: search-service
-              uri: http://localhost:9097
-              predicates:
-                - Path=/search-service/**
             # 알림
             - id: notification-service
               uri: http://localhost:9098

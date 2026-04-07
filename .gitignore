@@ -46,3 +46,4 @@ out/
 /data/redis/appendonlydir/appendonly.aof.1.incr.aof
 /data/redis/appendonlydir/appendonly.aof.manifest
 /data/redis/dump.rdb
+/pay/.env
