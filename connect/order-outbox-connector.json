@@ -1,0 +1,16 @@
+{
+  "name": "order-outbox-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "postgresql",
+    "database.port": "5432",
+    "database.user": "hyuk",
+    "database.password": "${POSTGRES_PASSWORD}",
+    "database.dbname": "delivery_eum",
+    "database.server.name": "order",
+    "table.include.list": "public.order_outbox",
+    "topic.prefix": "order-events",
+    "plugin.name": "pgoutput",
+    "slot.name": "order_outbox_slot"
+  }
+}

@@ -27,6 +27,7 @@ public class OrderServiceImpl implements OrderService{
     private final Snowflake snowflake;
     private final RestaurantServiceClient restaurantServiceClient;
     private final PayServiceClient payServiceClient;
+    private final OrderOutboxService orderOutboxService;
 
     @Override
     public OrderResponseDto createOrder(OrderRequestDto orderRequestDto, String userId) {
@@ -85,14 +86,18 @@ public class OrderServiceImpl implements OrderService{
 
     @Override
     public void moneyPaid(PayConfirmedRequestDto payConfirmedRequestDto) {
-        if (!"DONE".equalsIgnoreCase(payConfirmedRequestDto.getPayStatus())) {
-            throw new IllegalStateException("결제가 완료되지 않은 주문은 처리할 수 없습니다. 상태: " + payConfirmedRequestDto.getPayStatus());
+        try {
+            if (!"DONE".equalsIgnoreCase(payConfirmedRequestDto.getPayStatus())) {
+                throw new IllegalStateException("결제가 완료되지 않은 주문은 처리할 수 없습니다. 상태: " + payConfirmedRequestDto.getPayStatus());
+            }
+
+            OrderEntity entity = orderRepository.findById(Long.valueOf(payConfirmedRequestDto.getOrderId()))
+                    .orElseThrow(() -> new RuntimeException("해당 ID의 주문을 찾을 수 없습니다"));
+
+            entity.updateToPaid();
+        } catch (Exception e) {
+            orderOutboxService.saveCancelEvent(payConfirmedRequestDto.getOrderId(), "CANCEL");
         }
-
-        OrderEntity entity = orderRepository.findById(Long.valueOf(payConfirmedRequestDto.getOrderId()))
-                .orElseThrow(() -> new RuntimeException("해당 ID의 주문을 찾을 수 없습니다"));
-
-        entity.updateToPaid();
 
         // Todo: 음식점으로 주문 정보 전송
 //        SellerResponseDto sellerResponse = SellerResponseDto.builder()
@@ -176,6 +181,8 @@ public class OrderServiceImpl implements OrderService{
         }
 
         entity.updateToCompleted();
+
+        orderOutboxService.saveOrderCompleteEvent(String.valueOf(orderId), "COMPLETED");
 
         return modelMapper.map(entity, OrderCompleteResponseDto.class);
     }
