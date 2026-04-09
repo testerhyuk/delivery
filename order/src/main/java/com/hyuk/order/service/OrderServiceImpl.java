@@ -95,32 +95,31 @@ public class OrderServiceImpl implements OrderService{
                     .orElseThrow(() -> new RuntimeException("해당 ID의 주문을 찾을 수 없습니다"));
 
             entity.updateToPaid();
+
+            SellerResponseDto sellerResponse = SellerResponseDto.builder()
+                    .id(entity.getId())
+                    .userId(entity.getUserId())
+                    .restaurantId(entity.getRestaurantId())
+                    .orderStatus(entity.getOrderStatus())
+                    .totalPrice(entity.getTotalPrice())
+                    .deliveryAddress(entity.getDeliveryAddress())
+                    .orderAt(entity.getOrderAt())
+                    .orderItems(entity.getOrderItems().stream()
+                            .map(item -> {
+                                SellerResponseDto.ResponseOrderItems itemDto = new SellerResponseDto.ResponseOrderItems();
+                                itemDto.setMenuId(item.getMenuId());
+                                itemDto.setMenuName(item.getMenuName());
+                                itemDto.setPrice(item.getPrice());
+                                itemDto.setQuantity(item.getQuantity());
+                                return itemDto;
+                            })
+                            .toList())
+                    .build();
+
+            orderOutboxService.saveSendToSellerEvent(payConfirmedRequestDto.getOrderId(), "ORDER", sellerResponse);
         } catch (Exception e) {
             orderOutboxService.saveCancelEvent(payConfirmedRequestDto.getOrderId(), "CANCEL");
         }
-
-        // Todo: 음식점으로 주문 정보 전송
-//        SellerResponseDto sellerResponse = SellerResponseDto.builder()
-//                .id(entity.getId())
-//                .userId(entity.getUserId())
-//                .restaurantId(entity.getRestaurantId())
-//                .orderStatus(entity.getOrderStatus())
-//                .totalPrice(entity.getTotalPrice())
-//                .deliveryAddress(entity.getDeliveryAddress())
-//                .orderAt(entity.getOrderAt())
-//                .orderItems(entity.getOrderItems().stream()
-//                        .map(item -> {
-//                            SellerResponseDto.ResponseOrderItems itemDto = new SellerResponseDto.ResponseOrderItems();
-//                                itemDto.setMenuId(item.getMenuId());
-//                                itemDto.setMenuName(item.getMenuName());
-//                                itemDto.setPrice(item.getPrice());
-//                                itemDto.setQuantity(item.getQuantity());
-//                                return itemDto;
-//                        })
-//                        .toList())
-//                .build();
-
-//        sellerClient.order(sellerResponse);
     }
 
     @Override
