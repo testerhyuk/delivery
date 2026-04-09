@@ -21,7 +21,9 @@ public class KafkaConsumer {
         try {
             JsonNode payload = objectMapper.readTree(message).get("payload").get("after");
 
-            if (payload == null || payload.isNull()) return;
+            if (payload == null || payload.isNull()) {
+                throw new Exception("pay-events.public.pay_outbox.payload is null");
+            }
 
             String status = payload.get("status").asText();
             Long orderId = Long.parseLong(payload.get("order_id").asText());
@@ -45,7 +47,9 @@ public class KafkaConsumer {
         try {
             JsonNode payload = objectMapper.readTree(message).get("payload").get("after");
 
-            if (payload == null || payload.isNull()) return;
+            if (payload == null || payload.isNull()){
+                throw new Exception("seller-events.public.seller_outbox.payload is null");
+            }
 
             String status = payload.get("status").asText();
             Long orderId = Long.parseLong(payload.get("order_id").asText());
@@ -65,7 +69,9 @@ public class KafkaConsumer {
         try {
             JsonNode payload = objectMapper.readTree(message).get("payload").get("after");
 
-            if (payload == null || payload.isNull()) return;
+            if (payload == null || payload.isNull()) {
+                throw new RuntimeException("rider-events.public.rider_outbox.payload is null");
+            }
 
             String status = payload.get("status").asText();
             Long orderId = Long.parseLong(payload.get("order_id").asText());

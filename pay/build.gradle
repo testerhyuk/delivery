@@ -26,6 +26,9 @@ dependencies {
     implementation 'org.springframework.retry:spring-retry'
     implementation 'org.springframework:spring-aspects'
 
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
     implementation project(':snowflake')
 }
 

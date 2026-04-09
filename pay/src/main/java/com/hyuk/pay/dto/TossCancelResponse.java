@@ -1,10 +1,12 @@
 package com.hyuk.pay.dto;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
+@Builder
 public class TossCancelResponse {
     private String paymentKey;
     private String orderId;
@@ -15,6 +17,7 @@ public class TossCancelResponse {
     private List<Cancel> cancels;
 
     @Data
+    @Builder
     public static class Cancel {
         private Long cancelAmount;
         private String cancelReason;

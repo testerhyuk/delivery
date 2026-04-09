@@ -3,6 +3,7 @@ package com.hyuk.order.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hyuk.common.Snowflake;
+import com.hyuk.order.dto.PayConfirmedRequestDto;
 import com.hyuk.order.dto.SellerResponseDto;
 import com.hyuk.order.entity.OrderOutbox;
 import com.hyuk.order.repository.OrderOutboxRepository;
@@ -21,12 +22,13 @@ public class OrderOutboxService {
     private final Snowflake snowflake;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void saveCancelEvent(String orderId, String status) {
+    public void saveCancelEvent(PayConfirmedRequestDto request, String status) {
         try {
-            Map<String, String> data = Map.of(
-                    "orderId", orderId,
+            Map<String, Object> data = Map.of(
+                    "orderId", request.getOrderId(),
                     "status", status,
-                    "reason", "ORDER_UPDATE_TO_PAID_FAILED"
+                    "payConfirmRequest", request,
+                    "reason", "ORDER_TO_PAID_FAILED"
             );
 
             String payload = objectMapper.writeValueAsString(data);
