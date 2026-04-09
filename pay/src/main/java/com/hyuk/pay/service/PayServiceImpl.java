@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -30,6 +31,7 @@ public class PayServiceImpl implements PayService {
     private final ModelMapper modelMapper;
     private final OrderServiceClient orderServiceClient;
     private final PayLogService payLogService;
+    private final PayOutboxService payOutboxService;
 
     @Override
     public ResponsePayReady readyPayment(RequestOrder requestOrder) {
@@ -74,6 +76,7 @@ public class PayServiceImpl implements PayService {
             throw new RuntimeException("이미 취소된 주문번호입니다. 새로운 주문이 필요합니다.");
         }
 
+        // 동일 요청 방어 코드
         if (PayStatus.DONE.equals(entity.getStatus())) {
             return modelMapper.map(entity, ResponseOrder.class);
         }
@@ -94,7 +97,7 @@ public class PayServiceImpl implements PayService {
         payConfirmedRequestDto.setOrderId(response.getOrderId());
         payConfirmedRequestDto.setPayStatus(String.valueOf(response.getPayStatus()));
 
-        orderServiceClient.updatePaid(payConfirmedRequestDto);
+        payOutboxService.saveToOrderUpdatePaid(payConfirmedRequestDto);
 
         return response;
     }
@@ -116,17 +119,35 @@ public class PayServiceImpl implements PayService {
     }
 
     @Override
-    public void cancelPayment(TossCancelResponse response) {
-        PayEntity entity = payRepository.findByOrderId(response.getOrderId()).orElseThrow(() -> new RuntimeException("결제 정보 없음"));
+    public void cancelPayment(TossCancelResponse response, boolean publishEvent) {
+        try {
+            PayEntity entity = payRepository.findByOrderId(response.getOrderId()).orElseThrow(() -> new RuntimeException("결제 정보 없음"));
 
-        if (response.getCancels() != null && !response.getCancels().isEmpty()) {
-            TossCancelResponse.Cancel lastCancel = response.getCancels().getLast();
+            if (response.getCancels() != null && !response.getCancels().isEmpty()) {
+                TossCancelResponse.Cancel lastCancel = response.getCancels().getLast();
 
-            entity.cancelPayment(lastCancel.getCancelReason(), LocalDateTime.parse(lastCancel.getCanceledAt()));
+                entity.cancelPayment(lastCancel.getCancelReason(), LocalDateTime.parse(lastCancel.getCanceledAt()));
+            }
+
+            payRepository.save(entity);
+
+            if (publishEvent) {
+                payOutboxService.saveToOrderCancel(response.getOrderId(), "CANCEL");
+            }
+        } catch (Exception e) {
+            log.error("결제 취소 중 오류 발생: {}", e.getMessage());
+            payOutboxService.saveToOrderCancel(String.valueOf(response.getOrderId()), "CANCEL");
         }
+    }
 
-        payRepository.save(entity);
+    @Override
+    public void userCancelProcess(String orderId, String reason) {
+        PayEntity entity = payRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new RuntimeException("결제 내역을 찾을 수 없습니다."));
 
-        orderServiceClient.cancelOrder(Long.valueOf(entity.getOrderId()));
+        Map<String, String> tossRequest = Map.of("cancelReason", reason);
+        TossCancelResponse response = tossPayClient.cancel(entity.getPaymentKey(), tossRequest);
+
+        this.cancelPayment(response, true);
     }
 }
