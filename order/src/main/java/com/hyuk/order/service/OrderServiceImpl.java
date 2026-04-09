@@ -118,7 +118,7 @@ public class OrderServiceImpl implements OrderService{
 
             orderOutboxService.saveSendToSellerEvent(payConfirmedRequestDto.getOrderId(), "ORDER", sellerResponse);
         } catch (Exception e) {
-            orderOutboxService.saveCancelEvent(payConfirmedRequestDto.getOrderId(), "CANCEL");
+            orderOutboxService.saveCancelEvent(payConfirmedRequestDto, "CANCEL");
         }
     }
 
