@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -55,8 +56,25 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
             refreshTokenService.saveRefreshToken(member.getId(), refreshToken, jwtTokenProvider.getExpiration(refreshToken));
 
+            Long userId = member.getId();
+
             response.addHeader("Set-Cookie", "accessToken=" + accessToken + "; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax");
-            response.sendRedirect("http://localhost:8000/auth/success");
+            ResponseCookie loginCookie = ResponseCookie.from("isLoggedIn", "true")
+                    .path("/")
+                    .maxAge(3600)
+                    .domain("localhost")
+                    .sameSite("Lax")
+                    .build();
+
+            response.addHeader("Set-Cookie", loginCookie.toString());
+
+            boolean isNewUser = memberService.hasAddress(userId);
+
+            if (isNewUser) {
+                response.sendRedirect("http://localhost:5173/?need_address=true&user_id=" + userId);
+            } else {
+                response.sendRedirect("http://localhost:5173/");
+            }
 
         } catch (Exception e) {
             log.error("인증 처리 실패: ", e);

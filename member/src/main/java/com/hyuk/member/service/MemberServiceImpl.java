@@ -84,4 +84,17 @@ public class MemberServiceImpl implements MemberService {
 
         return modelMapper.map(member, AddressResponse.class);
     }
+
+    @Override
+    public boolean hasAddress(Long id) {
+        MemberEntity member = memberRepository.findById(id).orElse(null);
+
+        if (member == null) {
+            throw new RuntimeException("회원 정보를 찾을 수 없습니다");
+        }
+
+        System.out.println("member address : " + member.getAddress());
+
+        return member.getAddress() == null;
+    }
 }

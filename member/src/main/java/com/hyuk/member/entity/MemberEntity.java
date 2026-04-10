@@ -1,5 +1,6 @@
 package com.hyuk.member.entity;
 
+import com.hyuk.common.Snowflake;
 import com.hyuk.member.entity.enums.Role;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -16,6 +17,9 @@ import java.util.Set;
 public class MemberEntity {
     @Id
     private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String memberId;
 
     @Column(nullable = false, unique = true)
     private String email;
@@ -35,10 +39,13 @@ public class MemberEntity {
     @Enumerated(EnumType.STRING)
     private Set<Role> roles = new HashSet<>();
 
+    private Long restaurantId;
+
     // 일반 사용자 가입 전용 팩토리
     public static MemberEntity createUserMember(Long id, String email, String name, String provider, String providerId) {
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.id = id;
+        memberEntity.memberId = Snowflake.prefixedId("member", id);
         memberEntity.email = email;
         memberEntity.name = name;
         memberEntity.provider = provider;
@@ -52,6 +59,7 @@ public class MemberEntity {
     public static MemberEntity createRiderMember(Long id, String email, String name, String provider, String providerId) {
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.id = id;
+        memberEntity.memberId = Snowflake.prefixedId("member", id);
         memberEntity.email = email;
         memberEntity.name = name;
         memberEntity.provider = provider;
