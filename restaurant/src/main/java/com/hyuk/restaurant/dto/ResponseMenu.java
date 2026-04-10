@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class ResponseMenu {
     private Long id;
+    private String menuId;
     private String name;
     private Integer price;
 }

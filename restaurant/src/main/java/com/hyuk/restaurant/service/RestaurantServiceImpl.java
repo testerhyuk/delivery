@@ -2,7 +2,6 @@ package com.hyuk.restaurant.service;
 
 import com.hyuk.restaurant.calculator.DistanceCalculator;
 import com.hyuk.restaurant.dto.ResponseRestaurant;
-import com.hyuk.restaurant.entity.RestaurantEntity;
 import com.hyuk.restaurant.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
