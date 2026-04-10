@@ -1,5 +1,6 @@
 package com.hyuk.pay.entity;
 
+import com.hyuk.common.Snowflake;
 import com.hyuk.pay.entity.enums.PayStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,6 +19,8 @@ import java.time.LocalDateTime;
 public class PayHistoryEntity {
     @Id
     private Long id;
+    @Column(nullable = false, unique = true)
+    private String payHistoryId;
     @Column(nullable = false)
     private Long payId;
     private PayStatus payStatus;
@@ -27,6 +30,7 @@ public class PayHistoryEntity {
     public static PayHistoryEntity failPayment(Long id, Long payId, String failReason, LocalDateTime failedTime) {
         PayHistoryEntity payHistoryEntity = new PayHistoryEntity();
         payHistoryEntity.id = id;
+        payHistoryEntity.payHistoryId = Snowflake.prefixedId("payHistory", id);
         payHistoryEntity.payId = payId;
         payHistoryEntity.payStatus = PayStatus.FAILED;
         payHistoryEntity.failReason = failReason;

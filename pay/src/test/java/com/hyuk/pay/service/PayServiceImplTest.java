@@ -5,6 +5,7 @@ import com.hyuk.pay.dto.RequestOrder;
 import com.hyuk.pay.dto.ResponseOrder;
 import com.hyuk.pay.entity.PayEntity;
 import com.hyuk.pay.repository.PayRepository;
+import org.modelmapper.ModelMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -25,6 +27,15 @@ class PayServiceImplTest {
     @Mock
     private PayRepository payRepository;
 
+    @Mock
+    private ModelMapper modelMapper;
+
+    @Mock
+    private PayLogService payLogService;
+
+    @Mock
+    private PayOutboxService payOutboxService;
+
     @InjectMocks
     private PayServiceImpl payService;
 
@@ -33,7 +44,7 @@ class PayServiceImplTest {
     void notEqualPriceMustThrowException() {
         String orderId = "order_123";
         PayEntity existingPay = PayEntity.processPay(1L, orderId, 21500L);
-        when(payRepository.findByOrderId(orderId)).thenReturn(existingPay);
+        when(payRepository.findByOrderId(orderId)).thenReturn(Optional.of(existingPay));
 
         RequestOrder manipulatedRequest = new RequestOrder();
         manipulatedRequest.setOrderId(orderId);
@@ -53,7 +64,7 @@ class PayServiceImplTest {
         String orderId = "order_456";
         Long amount = 21500L;
         PayEntity existingPay = PayEntity.processPay(2L, orderId, amount);
-        when(payRepository.findByOrderId(orderId)).thenReturn(existingPay);
+        when(payRepository.findByOrderId(orderId)).thenReturn(Optional.of(existingPay));
 
         ResponseOrder mockResponse = new ResponseOrder();
         mockResponse.setPaymentKey("toss_pk_abc123");
@@ -85,7 +96,7 @@ class PayServiceImplTest {
 
         PayEntity existingPay = PayEntity.processPay(1L, orderId, oldAmount);
 
-        when(payRepository.findByOrderId(orderId)).thenReturn(existingPay);
+        when(payRepository.findByOrderId(orderId)).thenReturn(Optional.of(existingPay));
 
         RequestOrder updateRequest = new RequestOrder();
         updateRequest.setOrderId(orderId);
@@ -104,7 +115,7 @@ class PayServiceImplTest {
     @DisplayName("DB에 존재하지 않는 주문번호로 승인 요청 시 예외가 발생해야 한다")
     void shouldThrowExceptionWhenOrderNotFound() {
         String unknownOrderId = "NONE_123";
-        when(payRepository.findByOrderId(unknownOrderId)).thenReturn(null);
+        when(payRepository.findByOrderId(unknownOrderId)).thenReturn(Optional.empty());
 
         RequestOrder request = new RequestOrder();
         request.setOrderId(unknownOrderId);
@@ -114,7 +125,7 @@ class PayServiceImplTest {
             payService.confirmPayment(request);
         });
 
-        assertEquals("결제 정보 없음", exception.getMessage());
+        assertTrue(exception.getMessage().contains("결제 정보가 존재하지 않습니다"));
         verify(tossPayClient, never()).confirm(any());
     }
 
@@ -123,7 +134,7 @@ class PayServiceImplTest {
     void shouldRecordFailureReasonWhenTossReturnsError() {
         String orderId = "order_fail_test";
         PayEntity payEntity = PayEntity.processPay(1L, orderId, 21500L);
-        when(payRepository.findByOrderId(orderId)).thenReturn(payEntity);
+        when(payRepository.findByOrderId(orderId)).thenReturn(Optional.of(payEntity));
 
         String errorMessage = "잔액 부족";
         when(tossPayClient.confirm(any())).thenThrow(new RuntimeException(errorMessage));
@@ -142,7 +153,7 @@ class PayServiceImplTest {
     void shouldMapAllFieldsCorrectlyAfterSuccess() {
         String orderId = "order_map_test";
         PayEntity payEntity = PayEntity.processPay(1L, orderId, 21500L);
-        when(payRepository.findByOrderId(orderId)).thenReturn(payEntity);
+        when(payRepository.findByOrderId(orderId)).thenReturn(Optional.of(payEntity));
 
         ResponseOrder mockResponse = new ResponseOrder();
         mockResponse.setPaymentKey("TOSS_KEY_999");

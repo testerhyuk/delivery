@@ -1,5 +1,6 @@
 package com.hyuk.pay.entity;
 
+import com.hyuk.common.Snowflake;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -18,6 +19,9 @@ public class PayOutbox {
     @Id
     private Long id;
 
+    @Column(nullable = false, unique = true)
+    private String payOutboxId;
+
     @Column(nullable = false)
     private String eventType;
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -28,6 +32,7 @@ public class PayOutbox {
     public static PayOutbox create(Long id, String eventType, String payload) {
         PayOutbox payOutbox = new PayOutbox();
         payOutbox.id = id;
+        payOutbox.payOutboxId = Snowflake.prefixedId("payOutbox", id);
         payOutbox.eventType = eventType;
         payOutbox.payload = payload;
         payOutbox.createdAt = LocalDateTime.now();

@@ -1,5 +1,6 @@
 package com.hyuk.pay.entity;
 
+import com.hyuk.common.Snowflake;
 import com.hyuk.pay.entity.enums.PayStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -15,6 +16,9 @@ import java.time.LocalDateTime;
 public class PayEntity {
     @Id
     private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String payId;
 
     @Column(nullable = false, unique = true)
     private String orderId;
@@ -35,6 +39,7 @@ public class PayEntity {
     public static PayEntity processPay(Long id, String orderId, Long amount) {
         PayEntity entity = new PayEntity();
         entity.id = id;
+        entity.payId = Snowflake.prefixedId("pay", id);
         entity.orderId = orderId;
         entity.amount = amount;
         entity.status = PayStatus.READY;
