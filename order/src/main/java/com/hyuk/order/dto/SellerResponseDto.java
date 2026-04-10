@@ -21,7 +21,7 @@ public class SellerResponseDto {
 
     @Data
     public static class ResponseOrderItems {
-        private Long menuId;
+        private String menuId;
         private String menuName;
         private Integer price;
         private Integer quantity;

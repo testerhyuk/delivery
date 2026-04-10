@@ -43,7 +43,7 @@ class OrderTest {
         userId = "USER-1234";
 
         OrderRequestDto.OrderItemsRequestDto itemDto = OrderRequestDto.OrderItemsRequestDto.builder()
-                .menuId(1L)
+                .menuId("1")
                 .menuName("menu")
                 .price(1000)
                 .quantity(2)

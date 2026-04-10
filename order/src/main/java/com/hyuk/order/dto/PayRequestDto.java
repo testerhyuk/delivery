@@ -15,7 +15,7 @@ public class PayRequestDto {
 
     @Data
     public static class RequestOrderItems {
-        private Long menuId;
+        private String menuId;
         private String menuName;
         private Long price;
         private Integer quantity;

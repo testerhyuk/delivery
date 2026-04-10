@@ -52,7 +52,7 @@ class OrderServiceImplTest {
         Long generatedOrderId = 333L; // Snowflake가 줄 ID
 
         OrderRequestDto.OrderItemsRequestDto itemRequest = OrderRequestDto.OrderItemsRequestDto.builder()
-                .menuId(111L).menuName("불고기").quantity(2).build();
+                .menuId("111").menuName("불고기").quantity(2).build();
 
         OrderRequestDto request = OrderRequestDto.builder()
                 .restaurantId(restaurantId).deliveryAddress("인천시")
@@ -68,7 +68,7 @@ class OrderServiceImplTest {
         given(snowflake.nextId()).willReturn(generatedOrderId);
 
         ResponsePayReady mockPayResponse = new ResponsePayReady();
-        mockPayResponse.setOrderId(444L);
+        mockPayResponse.setOrderId("order_444");
         given(payServiceClient.readyPayment(any(PayRequestDto.class))).willReturn(mockPayResponse);
 
         // 2. When (실행)
@@ -83,7 +83,7 @@ class OrderServiceImplTest {
         // 주소 검증
         assertEquals("인천시", result.getDeliveryAddress());
         // 결제 정보 연동 검증
-        assertEquals(444L, result.getPaymentInfo().getOrderId());
+        assertEquals("order_444", result.getPaymentInfo().getOrderId());
 
         // 서비스 간 협력 검증
         verify(restaurantService, times(1)).getMenu(restaurantId);

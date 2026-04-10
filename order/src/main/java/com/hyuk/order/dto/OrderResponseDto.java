@@ -9,6 +9,7 @@ import java.util.List;
 @Data
 public class OrderResponseDto {
     private Long id;
+    private String orderId;
     private String userId;
     private Long restaurantId;
     private String orderStatus;

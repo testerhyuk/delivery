@@ -30,7 +30,7 @@ public class OrderRequestDto {
     @Builder
     public static class OrderItemsRequestDto {
         @NotNull
-        private Long menuId;
+        private String menuId;
         @NotBlank
         private String menuName;
         @NotNull
