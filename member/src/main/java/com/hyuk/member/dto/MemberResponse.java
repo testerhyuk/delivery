@@ -10,6 +10,7 @@ import java.util.Set;
 @NoArgsConstructor
 public class MemberResponse {
     private Long id;
+    private String memberId;
     private String email;
     private String name;
     private String address;
