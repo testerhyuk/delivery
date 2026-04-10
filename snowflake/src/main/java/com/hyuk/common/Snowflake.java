@@ -44,6 +44,14 @@ public class Snowflake {
                 | sequence;
     }
 
+    public String nextPrefixedId(String prefix) {
+        return prefixedId(prefix, nextId());
+    }
+
+    public static String prefixedId(String prefix, long id) {
+        return prefix + "_" + id;
+    }
+
     private long waitNextMillis(long currentTimestamp) {
         while (currentTimestamp <= lastTimeMillis) {
             currentTimestamp = System.currentTimeMillis();
