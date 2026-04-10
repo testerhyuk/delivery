@@ -61,6 +61,14 @@ if [ $? -ne 0 ]; then exit 1; fi
 register_connector "pay-outbox-connector" "/config/pay-outbox-connector.json"
 if [ $? -ne 0 ]; then exit 1; fi
 
+# Seller 등록
+register_connector "seller-outbox-connector" "/config/seller-outbox-connector.json"
+if [ $? -ne 0 ]; then exit 1; fi
+
+# Rider 등록
+register_connector "rider-outbox-connector" "/config/rider-outbox-connector.json"
+if [ $? -ne 0 ]; then exit 1; fi
+
 echo "--------------------------------------------------"
 echo "모든 설정 완료! 모든 커넥터가 정상 가동 중입니다."
 echo "--------------------------------------------------"
