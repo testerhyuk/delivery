@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -88,14 +90,15 @@ public class PayServiceImpl implements PayService {
 
         ResponseOrder response = tossPayClient.confirm(requestOrder);
 
+        String cardNumber = response.getCard() != null ? response.getCard().getNumber() : null;
         entity.completedPayment(response.getPaymentKey(), response.getMethod(),
-                String.valueOf(response.getCard().getNumber()), response.getVat(), response.getApprovedAt());
+                cardNumber, response.getVat(), parseApprovedAt(response.getApprovedAt()));
 
         payRepository.save(entity);
 
         PayConfirmedRequestDto payConfirmedRequestDto = new PayConfirmedRequestDto();
-        payConfirmedRequestDto.setOrderId(response.getOrderId());
-        payConfirmedRequestDto.setPayStatus(String.valueOf(response.getPayStatus()));
+        payConfirmedRequestDto.setOrderId(requestOrder.getOrderId());
+        payConfirmedRequestDto.setPayStatus(PayStatus.DONE.name());
 
         payOutboxService.saveToOrderUpdatePaid(payConfirmedRequestDto);
 
@@ -104,7 +107,7 @@ public class PayServiceImpl implements PayService {
 
     @Recover
     public ResponseOrder recover(Exception e, RequestOrder requestOrder) {
-        log.error("결제 최종 실패 (3회 시도 종료) : {}", e.getMessage());
+        log.error("결제 최종 실패 (3회 시도 종료) : {}", e.getMessage(), e);
 
         payRepository.findByOrderId(requestOrder.getOrderId()).ifPresent(entity -> {
             payLogService.recordFail(
@@ -116,6 +119,18 @@ public class PayServiceImpl implements PayService {
         });
 
         throw new RuntimeException("결제 승인 최종 실패: " + e.getMessage());
+    }
+
+    private LocalDateTime parseApprovedAt(String approvedAt) {
+        if (approvedAt == null || approvedAt.isBlank()) {
+            return null;
+        }
+
+        try {
+            return OffsetDateTime.parse(approvedAt).toLocalDateTime();
+        } catch (DateTimeParseException ignored) {
+            return LocalDateTime.parse(approvedAt);
+        }
     }
 
     @Override
@@ -136,18 +151,26 @@ public class PayServiceImpl implements PayService {
             }
         } catch (Exception e) {
             log.error("결제 취소 중 오류 발생: {}", e.getMessage());
-            payOutboxService.saveToOrderCancel(String.valueOf(response.getOrderId()), "CANCEL");
+            throw new RuntimeException("결제 취소 실패: " + e.getMessage(), e);
         }
     }
 
     @Override
     public void userCancelProcess(String orderId, String reason) {
+        cancelByOrderId(orderId, reason, true);
+    }
+
+    @Override
+    public void cancelByOrderId(String orderId, String reason, boolean publishEvent) {
         PayEntity entity = payRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new RuntimeException("결제 내역을 찾을 수 없습니다."));
 
+        if (entity.getPaymentKey() == null || entity.getPaymentKey().isBlank()) {
+            throw new RuntimeException("결제 승인 전 상태라 취소할 수 없습니다.");
+        }
+
         Map<String, String> tossRequest = Map.of("cancelReason", reason);
         TossCancelResponse response = tossPayClient.cancel(entity.getPaymentKey(), tossRequest);
-
-        this.cancelPayment(response, true);
+        this.cancelPayment(response, publishEvent);
     }
 }

@@ -11,4 +11,5 @@ public interface PayService {
     ResponseOrder confirmPayment(RequestOrder requestOrder);
     void cancelPayment(TossCancelResponse response, boolean publishEvent);
     void userCancelProcess(String orderId, String reason);
+    void cancelByOrderId(String orderId, String reason, boolean publishEvent);
 }
