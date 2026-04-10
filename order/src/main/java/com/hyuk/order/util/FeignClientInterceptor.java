@@ -13,9 +13,14 @@ public class FeignClientInterceptor implements RequestInterceptor {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 
         if (attributes != null) {
-            String jwt = attributes.getRequest().getHeader("Authorization");
-            if (jwt != null) {
-                template.header("Authorization", jwt);
+            String authorization = attributes.getRequest().getHeader("Authorization");
+            if (authorization != null && !authorization.isBlank()) {
+                template.header("Authorization", authorization);
+            }
+
+            String cookie = attributes.getRequest().getHeader("Cookie");
+            if (cookie != null && !cookie.isBlank()) {
+                template.header("Cookie", cookie);
             }
         }
     }

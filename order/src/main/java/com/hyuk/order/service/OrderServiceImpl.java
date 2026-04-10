@@ -37,7 +37,9 @@ public class OrderServiceImpl implements OrderService{
 
         for (OrderRequestDto.OrderItemsRequestDto itemDto : orderRequestDto.getOrderItems()) {
             ResponseMenu actualMenu = menuBoard.stream()
-                    .filter(m -> m.getId().equals(itemDto.getMenuId()))
+                    .filter(m -> String.valueOf(m.getId()).equals(itemDto.getMenuId())
+                            || (m.getMenuId() != null && m.getMenuId().equals(itemDto.getMenuId()))
+                            || m.getName().equals(itemDto.getMenuName()))
                     .findFirst()
                     .orElseThrow(() -> new RuntimeException("식당에서 판매하지 않는 메뉴가 포함되어 있습니다: " + itemDto.getMenuName()));
 

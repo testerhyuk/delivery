@@ -1,5 +1,6 @@
 package com.hyuk.order.entity;
 
+import com.hyuk.common.Snowflake;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -18,6 +19,9 @@ public class OrderOutbox {
     @Id
     private Long id;
 
+    @Column(nullable = false, unique = true)
+    private String orderOutboxId;
+
     @Column(nullable = false)
     private String eventType;
 
@@ -30,6 +34,7 @@ public class OrderOutbox {
     public static OrderOutbox create(Long id, String eventType, String payload) {
         OrderOutbox orderOutbox = new OrderOutbox();
         orderOutbox.id = id;
+        orderOutbox.orderOutboxId = Snowflake.prefixedId("orderOutbox", id);
         orderOutbox.eventType = eventType;
         orderOutbox.payload = payload;
         orderOutbox.createdAt = LocalDateTime.now();

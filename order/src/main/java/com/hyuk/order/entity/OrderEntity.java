@@ -1,5 +1,6 @@
 package com.hyuk.order.entity;
 
+import com.hyuk.common.Snowflake;
 import com.hyuk.order.entity.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -18,6 +19,9 @@ import java.util.List;
 public class OrderEntity {
     @Id
     private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String orderId;
 
     @Column(nullable = false)
     private String userId;
@@ -42,6 +46,7 @@ public class OrderEntity {
                                      BigDecimal userLatitude, BigDecimal userLongitude, List<OrderItems> orderItems) {
         OrderEntity orderEntity = new OrderEntity();
         orderEntity.id = id;
+        orderEntity.orderId = Snowflake.prefixedId("order", id);
         orderEntity.userId = userId;
         orderEntity.restaurantId = restaurantId;
         orderEntity.orderStatus = OrderStatus.PENDING;

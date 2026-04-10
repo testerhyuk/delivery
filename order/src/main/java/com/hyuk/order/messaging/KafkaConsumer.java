@@ -1,5 +1,6 @@
 package com.hyuk.order.messaging;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hyuk.order.dto.PayConfirmedRequestDto;
@@ -19,14 +20,18 @@ public class KafkaConsumer {
     @KafkaListener(topics = "pay-events.public.pay_outbox", groupId = "order-service-group")
     public void onPayEvent(String message) {
         try {
-            JsonNode payload = objectMapper.readTree(message).get("payload").get("after");
+            JsonNode payload = objectMapper.readTree(message).path("payload").path("after");
 
-            if (payload == null || payload.isNull()) {
-                throw new Exception("pay-events.public.pay_outbox.payload is null");
+            if (payload.isMissingNode() || payload.isNull()) {
+                throw new IllegalArgumentException("pay-events.public.pay_outbox.payload is null");
             }
 
-            String status = payload.get("status").asText();
-            Long orderId = Long.parseLong(payload.get("order_id").asText());
+            String status = payload.path("event_type").asText("");
+            JsonNode dataNode = objectMapper.readTree(payload.path("payload").asText("{}"));
+            long orderId = dataNode.path("orderId").asLong(-1L);
+            if (orderId < 0) {
+                throw new IllegalArgumentException("pay event orderId is invalid");
+            }
 
             if (status.equals("DONE")) {
                 PayConfirmedRequestDto payConfirmedRequestDto = new PayConfirmedRequestDto();
@@ -37,7 +42,7 @@ public class KafkaConsumer {
             } else if (status.equals("CANCEL")) {
                 orderService.cancelOrder(orderId);
             }
-        } catch (Exception e) {
+        } catch (JsonProcessingException | RuntimeException e) {
             log.error("[Order Consumer] 결제 이벤트 처리 중 오류 발생: {}", e.getMessage());
         }
     }
@@ -45,21 +50,25 @@ public class KafkaConsumer {
     @KafkaListener(topics = "seller-events.public.seller_outbox", groupId = "order-service-group")
     public void onSellerEvent(String message) {
         try {
-            JsonNode payload = objectMapper.readTree(message).get("payload").get("after");
+            JsonNode payload = objectMapper.readTree(message).path("payload").path("after");
 
-            if (payload == null || payload.isNull()){
-                throw new Exception("seller-events.public.seller_outbox.payload is null");
+            if (payload.isMissingNode() || payload.isNull()){
+                throw new IllegalArgumentException("seller-events.public.seller_outbox.payload is null");
             }
 
-            String status = payload.get("status").asText();
-            Long orderId = Long.parseLong(payload.get("order_id").asText());
+            String status = payload.path("event_type").asText("");
+            JsonNode dataNode = objectMapper.readTree(payload.path("payload").asText("{}"));
+            long orderId = dataNode.path("orderId").asLong(-1L);
+            if (orderId < 0) {
+                throw new IllegalArgumentException("seller event orderId is invalid");
+            }
 
             if (status.equals("COOKING")) {
                 orderService.updateToCooking(orderId);
             } else if (status.equals("DELIVERING")) {
                 orderService.updateToDelivering(orderId);
             }
-        } catch (Exception e) {
+        } catch (JsonProcessingException | RuntimeException e) {
             log.error("[Seller Consumer] 음식점 이벤트 처리 오류 발생 : {}", e.getMessage());
         }
     }
@@ -67,19 +76,23 @@ public class KafkaConsumer {
     @KafkaListener(topics = "rider-events.public.rider_outbox", groupId = "order-service-group")
     public void onRiderEvent(String message) {
         try {
-            JsonNode payload = objectMapper.readTree(message).get("payload").get("after");
+            JsonNode payload = objectMapper.readTree(message).path("payload").path("after");
 
-            if (payload == null || payload.isNull()) {
+            if (payload.isMissingNode() || payload.isNull()) {
                 throw new RuntimeException("rider-events.public.rider_outbox.payload is null");
             }
 
-            String status = payload.get("status").asText();
-            Long orderId = Long.parseLong(payload.get("order_id").asText());
+            String status = payload.path("event_type").asText("");
+            JsonNode dataNode = objectMapper.readTree(payload.path("payload").asText("{}"));
+            long orderId = dataNode.path("orderId").asLong(-1L);
+            if (orderId < 0) {
+                throw new IllegalArgumentException("rider event orderId is invalid");
+            }
 
             if (status.equals("COMPLETED")) {
                 orderService.completeOrder(orderId);
             }
-        } catch (Exception e) {
+        } catch (JsonProcessingException | RuntimeException e) {
             log.error("[Rider Consumer] 배달 완료 이벤트 처리 오류 발생 : {}", e.getMessage());
         }
     }
