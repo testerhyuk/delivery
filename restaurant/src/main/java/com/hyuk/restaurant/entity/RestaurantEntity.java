@@ -31,7 +31,6 @@ public class RestaurantEntity {
     @Column(nullable = false)
     private BigDecimal latitude;
     @Column(nullable = true)
-    private String eumCard;
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MenuEntity> menus = new ArrayList<>();
 
