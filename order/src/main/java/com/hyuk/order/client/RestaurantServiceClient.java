@@ -9,7 +9,7 @@ import java.util.List;
 
 @FeignClient(
         name = "restaurant-service",
-        url = "${RESTAURANT_SERVICE_URL:http://localhost:9092/restaurant-service}"
+        url = "${RESTAURANT_SERVICE_URL:http://localhost:9099/restaurant-service}"
 )
 public interface RestaurantServiceClient {
     @GetMapping("/menu/{restaurantId}")
