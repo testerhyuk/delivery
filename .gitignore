@@ -47,3 +47,7 @@ out/
 /data/redis/appendonlydir/appendonly.aof.manifest
 /data/redis/dump.rdb
 /pay/.env
+/seller/.env
+/rider/.env
+/delivery-front/.env
+/delivery-front/.gitignore

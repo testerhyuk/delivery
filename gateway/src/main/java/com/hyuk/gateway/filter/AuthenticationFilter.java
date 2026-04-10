@@ -39,21 +39,29 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
-            String path = exchange.getRequest().getURI().getPath();
+            ServerHttpRequest request = exchange.getRequest();
+            String path = request.getURI().getPath();
 
             if (secret == null) {
                 log.error("Config Missing: TOKEN_SECRET is null");
                 return onError(exchange, "Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
-            ServerHttpRequest request = exchange.getRequest();
+            String jwt = null;
+            String authorizationHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-            if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
-                return onError(exchange, "No Authorization header", HttpStatus.UNAUTHORIZED);
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                jwt = authorizationHeader.replace("Bearer ", "");
+            } else {
+                var cookie = request.getCookies().getFirst("accessToken");
+                if (cookie != null) {
+                    jwt = cookie.getValue();
+                }
             }
 
-            String authorizationHeader = request.getHeaders().get(HttpHeaders.AUTHORIZATION).get(0);
-            String jwt = authorizationHeader.replace("Bearer ", "");
+            if (jwt == null || jwt.isEmpty()) {
+                return onError(exchange, "No Authorization header or cookie", HttpStatus.UNAUTHORIZED);
+            }
 
             Claims claims = getClaimsIfValid(jwt);
             if (claims == null) {

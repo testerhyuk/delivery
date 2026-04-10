@@ -1,14 +1,14 @@
 package com.hyuk.restaurant.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.hyuk.common.Snowflake;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -18,6 +18,8 @@ public class RestaurantEntity {
     @Id
     @Column(nullable = false, unique = true)
     private Long id;
+    @Column(nullable = false, unique = true)
+    private String restaurantId;
     @Column(nullable = false)
     private String name;
     @Column(nullable = false)
@@ -30,6 +32,13 @@ public class RestaurantEntity {
     private BigDecimal latitude;
     @Column(nullable = true)
     private String eumCard;
+    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MenuEntity> menus = new ArrayList<>();
 
-
+    @PrePersist
+    public void assignRestaurantId() {
+        if (restaurantId == null && id != null) {
+            restaurantId = Snowflake.prefixedId("restaurant", id);
+        }
+    }
 }
