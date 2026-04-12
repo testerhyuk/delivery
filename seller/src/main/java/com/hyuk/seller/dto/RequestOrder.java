@@ -10,7 +10,8 @@ import java.util.List;
 @Builder
 public class RequestOrder {
     private Long id;
-    private Long restaurantId;
+    private String orderId;
+    private String restaurantId;
     private String userId;
     private Integer totalPrice;
     private String deliveryAddress;

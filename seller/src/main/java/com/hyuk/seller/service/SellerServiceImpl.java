@@ -25,10 +25,15 @@ public class SellerServiceImpl implements SellerService {
     public void confirmOrder(RequestOrder requestOrder) {
         List<Menu> menuList = new ArrayList<>();
 
+        String businessOrderId = requestOrder.getOrderId();
+        if (businessOrderId == null || businessOrderId.isBlank()) {
+            businessOrderId = String.valueOf(requestOrder.getId());
+        }
+
         SellerEntity entity = SellerEntity.create(
                 snowflake.nextId(),
-                String.valueOf(requestOrder.getId()),
-                String.valueOf(requestOrder.getRestaurantId()),
+                businessOrderId,
+                requestOrder.getRestaurantId(),
                 requestOrder.getDeliveryAddress(),
                 requestOrder.getTotalPrice(),
                 menuList,
@@ -48,25 +53,30 @@ public class SellerServiceImpl implements SellerService {
         });
 
         sellerRepository.save(entity);
+    }
+
+    @Override
+    public void deliveryStarted(String orderId) {
+        SellerEntity entity = sellerRepository.findByOrderId(orderId);
+        if (entity == null && orderId != null && orderId.matches("\\d+")) {
+            entity = sellerRepository.findByOrderId("order_" + orderId);
+        }
+        if (entity == null) {
+            throw new RuntimeException("주문을 찾을 수 없습니다: " + orderId);
+        }
 
         ResponseOrder response = convertToResponseOrder(entity);
 
         sellerOutboxService.saveCookingOrDeliveringEvent(response, "COOKING");
     }
 
-    @Override
-    public void deliveryStarted(String orderId) {
-        SellerEntity entity = sellerRepository.findByOrderId(orderId);
-
-        ResponseOrder response = convertToResponseOrder(entity);
-
-        sellerOutboxService.saveCookingOrDeliveringEvent(response, "DELIVERING");
-    }
-
     private ResponseOrder convertToResponseOrder(SellerEntity entity) {
+        String oid = entity.getOrderId();
+        long numericOrderPk = parseNumericOrderPk(oid);
         return ResponseOrder.builder()
-                .id(Long.valueOf(entity.getOrderId()))
-                .restaurantId(Long.valueOf(entity.getRestaurantId()))
+                .id(numericOrderPk)
+                .orderId(oid)
+                .restaurantId(entity.getRestaurantId())
                 .totalPrice(entity.getPrice())
                 .deliveryAddress(entity.getDeliveryAddress())
                 .orderAt(entity.getOrderAt())
@@ -79,5 +89,14 @@ public class SellerServiceImpl implements SellerService {
                                 .build()
                 ).toList())
                 .build();
+    }
+
+    private static long parseNumericOrderPk(String orderId) {
+        if (orderId == null || orderId.isBlank()) {
+            throw new IllegalArgumentException("orderId is blank");
+        }
+        int u = orderId.lastIndexOf('_');
+        String tail = u >= 0 ? orderId.substring(u + 1) : orderId;
+        return Long.parseLong(tail);
     }
 }

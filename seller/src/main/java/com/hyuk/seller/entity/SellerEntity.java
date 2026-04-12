@@ -50,5 +50,6 @@ public class SellerEntity {
 
     public void addMenu(Menu menuData) {
         this.menu.add(menuData);
+        menuData.confirmSellerMenu(this);
     }
 }

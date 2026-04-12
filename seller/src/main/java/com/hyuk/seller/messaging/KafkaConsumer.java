@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hyuk.seller.config.SellerWebSocketHandler;
 import com.hyuk.seller.dto.RequestOrder;
 import com.hyuk.seller.service.SellerService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -20,6 +22,7 @@ import java.util.List;
 public class KafkaConsumer {
     private final ObjectMapper objectMapper;
     private final SellerService sellerService;
+    private final SellerWebSocketHandler sellerWebSocketHandler;
 
     @KafkaListener(topics = "order-events.public.order_outbox", groupId = "seller-service-group")
     public void onOrderEvent(String message) {
@@ -49,19 +52,34 @@ public class KafkaConsumer {
             }
 
             RequestOrder order = RequestOrder.builder()
-                    .id(sellerRes.get("id").asLong())
-                    .restaurantId(sellerRes.get("restaurantId").asLong())
-                    .userId(sellerRes.get("userId").asText())
-                    .totalPrice(sellerRes.get("totalPrice").asInt())
-                    .deliveryAddress(sellerRes.get("deliveryAddress").asText())
-                    .orderAt(LocalDateTime.parse(sellerRes.get("orderAt").asText()))
+                    .id(sellerRes.path("id").asLong())
+                    .orderId(sellerRes.path("orderId").asText(""))
+                    .restaurantId(sellerRes.path("restaurantId").asText(""))
+                    .userId(sellerRes.path("userId").asText(""))
+                    .totalPrice(sellerRes.path("totalPrice").asInt())
+                    .deliveryAddress(sellerRes.path("deliveryAddress").asText(""))
+                    .orderAt(LocalDateTime.parse(sellerRes.path("orderAt").asText()))
                     .orderItems(objectMapper.convertValue(
-                            sellerRes.get("orderItems"),
+                            sellerRes.path("orderItems"),
                             new TypeReference<List<RequestOrder.RequestOrderItems>>() {}
                     ))
                     .build();
 
             sellerService.confirmOrder(order);
+
+            Map<String, Object> notification = Map.of(
+                    "type", "NEW_ORDER",
+                    "orderId", order.getOrderId(),
+                    "restaurantId", order.getRestaurantId(),
+                    "totalPrice", order.getTotalPrice(),
+                    "deliveryAddress", order.getDeliveryAddress(),
+                    "orderItems", order.getOrderItems()
+            );
+
+            sellerWebSocketHandler.sendToSeller(
+                    order.getRestaurantId(),
+                    notification
+            );
         } catch (JsonProcessingException | RuntimeException e) {
             log.error("Order에서 이벤트를 수신하지 못했습니다 : {}", e.getMessage());
         }

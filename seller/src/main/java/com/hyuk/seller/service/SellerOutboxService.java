@@ -22,7 +22,7 @@ public class SellerOutboxService {
     public void saveCookingOrDeliveringEvent(ResponseOrder response, String status) {
         try {
             Map<String, Object> data = Map.of(
-                    "orderId", response.getId(),
+                    "orderId", response.getOrderId(),
                     "status", status,
                     "responseData", response
             );
@@ -37,7 +37,7 @@ public class SellerOutboxService {
 
             sellerOutboxRepository.save(sellerOutbox);
         } catch (Exception e) {
-            throw new RuntimeException("toOrder Cooking/Delivering 이벤트 직렬화 실패 : " + e);
+            throw new RuntimeException("toOrder or toRider Cooking/Delivering 이벤트 직렬화 실패 : " + e);
         }
     }
 }
