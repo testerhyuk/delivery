@@ -9,9 +9,9 @@ import java.util.List;
 
 @FeignClient(
         name = "restaurant-service",
-        url = "${RESTAURANT_SERVICE_URL:http://localhost:9099/restaurant-service}"
+        url = "${RESTAURANT_SERVICE_URL:http://localhost:8000/restaurant-service}"
 )
 public interface RestaurantServiceClient {
     @GetMapping("/menu/{restaurantId}")
-    List<ResponseMenu> getMenu(@PathVariable("restaurantId") Long restaurantId);
+    List<ResponseMenu> getMenu(@PathVariable("restaurantId") String restaurantId);
 }

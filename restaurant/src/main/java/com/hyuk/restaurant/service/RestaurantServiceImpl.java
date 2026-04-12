@@ -2,6 +2,7 @@ package com.hyuk.restaurant.service;
 
 import com.hyuk.restaurant.calculator.DistanceCalculator;
 import com.hyuk.restaurant.dto.ResponseRestaurant;
+import com.hyuk.restaurant.entity.RestaurantEntity;
 import com.hyuk.restaurant.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -52,5 +53,16 @@ public class RestaurantServiceImpl implements RestaurantService {
                     return modelMapper.map(entry.getKey(), ResponseRestaurant.class);
                 })
                 .toList();
+    }
+
+    @Override
+    public ResponseRestaurant getRestaurantById(String restaurantId) {
+        RestaurantEntity entity = restaurantRepository.findByRestaurantId(restaurantId);
+
+        if (entity == null) {
+            throw new RuntimeException("Restaurant not found");
+        }
+
+        return modelMapper.map(entity, ResponseRestaurant.class);
     }
 }

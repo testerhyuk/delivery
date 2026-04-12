@@ -33,4 +33,10 @@ public class RestaurantController {
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @GetMapping("/restaurant/{restaurantId}")
+    public ResponseEntity<ResponseRestaurant> getRestaurant(@PathVariable String restaurantId) {
+        ResponseRestaurant response = restaurantService.getRestaurantById(restaurantId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }

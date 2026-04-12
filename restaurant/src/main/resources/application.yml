@@ -1,5 +1,5 @@
 server:
-  port: 9099
+  port: 9101
 
 spring:
   profiles:
@@ -7,15 +7,20 @@ spring:
   application:
     name: restaurant-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/delivery_eum
+#    url: jdbc:postgresql://localhost:5432/delivery_eum
+    url: jdbc:postgresql://localhost:5432/delivery_eum?reWriteBatchedInserts=true
     username: hyuk
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 1000
+        order_inserts: true
+        order_updates: true

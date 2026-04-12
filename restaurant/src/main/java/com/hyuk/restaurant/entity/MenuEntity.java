@@ -5,12 +5,13 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Persistable;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "restaurant_menus")
-public class MenuEntity {
+public class MenuEntity implements Persistable<Long> {
     @Id
     private Long id;
 
@@ -26,6 +27,20 @@ public class MenuEntity {
 
     @Column(nullable = false)
     private Integer price;
+
+    @Transient
+    private boolean isNew = true;
+
+    @PostPersist
+    @PostLoad
+    void markNotNew() {
+        this.isNew = false;
+    }
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
 
     public static MenuEntity create(Long id, String name, Integer price, RestaurantEntity restaurant) {
         MenuEntity menu = new MenuEntity();

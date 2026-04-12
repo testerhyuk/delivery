@@ -23,7 +23,7 @@ public class MenuController {
     }
 
     @GetMapping("/menu/{restaurantId}")
-    public ResponseEntity<List<ResponseMenu>> getMenu(@PathVariable("restaurantId") Long id) {
+    public ResponseEntity<List<ResponseMenu>> getMenu(@PathVariable("restaurantId") String id) {
         List<ResponseMenu> response = menuService.getMenu(id);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
