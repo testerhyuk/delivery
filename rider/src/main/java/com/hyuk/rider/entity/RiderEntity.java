@@ -50,6 +50,7 @@ public class RiderEntity {
 
     public void addMenu(Menu menu) {
         menuList.add(menu);
+        menu.confirmRiderMenu(this);
     }
 
     public void finishedDelivery() {

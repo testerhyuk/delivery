@@ -9,6 +9,10 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    set('springCloudVersion', "2025.0.2")
+}
+
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -21,7 +25,18 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
 
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
     implementation project(':snowflake')
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
 }
 
 test {

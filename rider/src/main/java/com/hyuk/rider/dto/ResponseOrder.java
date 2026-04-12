@@ -9,7 +9,8 @@ import java.util.List;
 @Builder
 public class ResponseOrder {
     private Long id;
-    private Long restaurantId;
+    private String orderId;
+    private String restaurantId;
     private Integer totalPrice;
     private String deliveryAddress;
     private List<ResponseOrderItems> orderItems;
