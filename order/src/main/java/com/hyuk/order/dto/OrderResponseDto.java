@@ -11,7 +11,7 @@ public class OrderResponseDto {
     private Long id;
     private String orderId;
     private String userId;
-    private Long restaurantId;
+    private String restaurantId;
     private String orderStatus;
     private Integer totalPrice;
     private String deliveryAddress;

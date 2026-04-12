@@ -100,6 +100,7 @@ public class OrderServiceImpl implements OrderService{
 
             SellerResponseDto sellerResponse = SellerResponseDto.builder()
                     .id(entity.getId())
+                    .orderId(entity.getOrderId())
                     .userId(entity.getUserId())
                     .restaurantId(entity.getRestaurantId())
                     .orderStatus(entity.getOrderStatus())
@@ -121,6 +122,8 @@ public class OrderServiceImpl implements OrderService{
             orderOutboxService.saveSendToSellerEvent(payConfirmedRequestDto.getOrderId(), "ORDER", sellerResponse);
         } catch (Exception e) {
             orderOutboxService.saveCancelEvent(payConfirmedRequestDto, "CANCEL");
+            log.error("주문 처리 중 오류 발생: {}", e.getMessage());
+            throw e;
         }
     }
 

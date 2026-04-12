@@ -47,7 +47,7 @@ class OrderServiceImplTest {
     @DisplayName("주문 정상적으로 생성")
     void createOrder() {
         // 1. Given
-        Long restaurantId = 1L;
+        String restaurantId = "1";
         String userId = "user-123";
         Long generatedOrderId = 333L; // Snowflake가 줄 ID
 
@@ -86,7 +86,7 @@ class OrderServiceImplTest {
         assertEquals("order_444", result.getPaymentInfo().getOrderId());
 
         // 서비스 간 협력 검증
-        verify(restaurantService, times(1)).getMenu(restaurantId);
+        verify(restaurantService, times(1)).getMenu(String.valueOf(restaurantId));
         verify(payServiceClient, times(1)).readyPayment(any(PayRequestDto.class));
         verify(orderRepository, times(1)).save(any(OrderEntity.class));
     }
@@ -99,7 +99,7 @@ class OrderServiceImplTest {
         OrderEntity mockOrder = OrderEntity.create(
                 orderId,
                 "user-123",
-                1L,
+                "1",
                 20000,
                 "인천시",
                 BigDecimal.valueOf(11.11),
@@ -138,7 +138,7 @@ class OrderServiceImplTest {
         Long orderId = 777L;
 
         OrderEntity mockOrder = OrderEntity.create(
-                orderId, "user-1", 1L, 10000, "인천",
+                orderId, "user-1", "1", 10000, "인천",
                 BigDecimal.valueOf(11.1), BigDecimal.valueOf(11.1), new ArrayList<>()
         );
 
@@ -155,7 +155,7 @@ class OrderServiceImplTest {
     void cancelOrder_Fail_AlreadyCanceled() {
         Long orderId = 888L;
         OrderEntity mockOrder = OrderEntity.create(
-                orderId, "user-1", 1L, 10000, "인천",
+                orderId, "user-1", "1", 10000, "인천",
                 BigDecimal.valueOf(11.1), BigDecimal.valueOf(11.1), new ArrayList<>()
         );
 
@@ -175,7 +175,7 @@ class OrderServiceImplTest {
     void updateToCooking_Success() {
         Long orderId = 101L;
         OrderEntity mockOrder = OrderEntity.create(
-                orderId, "user-1", 1L, 15000, "인천",
+                orderId, "user-1", "1", 15000, "인천",
                 BigDecimal.valueOf(11.1), BigDecimal.valueOf(11.1), new ArrayList<>()
         );
 
@@ -194,7 +194,7 @@ class OrderServiceImplTest {
     void updateToCooking_Fail_Canceled() {
         Long orderId = 102L;
         OrderEntity mockOrder = OrderEntity.create(
-                orderId, "user-1", 1L, 15000, "인천",
+                orderId, "user-1", "1", 15000, "인천",
                 BigDecimal.valueOf(11.1), BigDecimal.valueOf(11.1), new ArrayList<>()
         );
 
@@ -214,7 +214,7 @@ class OrderServiceImplTest {
     void updateToCooking_Fail_NotPaid() {
         Long orderId = 103L;
         OrderEntity mockOrder = OrderEntity.create(
-                orderId, "user-1", 1L, 15000, "인천",
+                orderId, "user-1", "1", 15000, "인천",
                 BigDecimal.valueOf(11.1), BigDecimal.valueOf(11.1), new ArrayList<>()
         );
 
@@ -232,7 +232,7 @@ class OrderServiceImplTest {
     void updateToDelivering_Success() {
         Long orderId = 201L;
         OrderEntity mockOrder = OrderEntity.create(
-                orderId, "user-1", 1L, 15000, "인천",
+                orderId, "user-1", "1", 15000, "인천",
                 BigDecimal.valueOf(11.1), BigDecimal.valueOf(11.1), new ArrayList<>()
         );
 
@@ -252,7 +252,7 @@ class OrderServiceImplTest {
     void updateToDelivering_Fail_NotCooking() {
         Long orderId = 202L;
         OrderEntity mockOrder = OrderEntity.create(
-                orderId, "user-1", 1L, 15000, "인천",
+                orderId, "user-1", "1", 15000, "인천",
                 BigDecimal.valueOf(11.1), BigDecimal.valueOf(11.1), new ArrayList<>()
         );
 
@@ -272,7 +272,7 @@ class OrderServiceImplTest {
     void completeOrder_Success() {
         Long orderId = 301L;
         OrderEntity mockOrder = OrderEntity.create(
-                orderId, "user-1", 1L, 15000, "인천",
+                orderId, "user-1", "1", 15000, "인천",
                 BigDecimal.valueOf(11.1), BigDecimal.valueOf(11.1), new ArrayList<>()
         );
 
@@ -294,7 +294,7 @@ class OrderServiceImplTest {
     void completeOrder_Idempotency() {
         Long orderId = 302L;
         OrderEntity mockOrder = OrderEntity.create(
-                orderId, "user-1", 1L, 15000, "인천",
+                orderId, "user-1", "1", 15000, "인천",
                 BigDecimal.valueOf(11.1), BigDecimal.valueOf(11.1), new ArrayList<>()
         );
 
@@ -317,7 +317,7 @@ class OrderServiceImplTest {
     void completeOrder_Fail_NotDelivering() {
         Long orderId = 303L;
         OrderEntity mockOrder = OrderEntity.create(
-                orderId, "user-1", 1L, 15000, "인천",
+                orderId, "user-1", "1", 15000, "인천",
                 BigDecimal.valueOf(11.1), BigDecimal.valueOf(11.1), new ArrayList<>()
         );
 

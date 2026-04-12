@@ -50,7 +50,7 @@ class OrderTest {
                 .build();
 
         dto = OrderRequestDto.builder()
-                .restaurantId(1L)
+                .restaurantId("RES-1")
                 .deliveryAddress("인천시")
                 .userLatitude(BigDecimal.valueOf(12.11))
                 .userLongitude(BigDecimal.valueOf(22.22))

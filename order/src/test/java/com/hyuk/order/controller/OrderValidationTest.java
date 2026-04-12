@@ -26,7 +26,7 @@ class OrderValidationTest {
     void emptyOrderItems() throws Exception {
         String content = """
                 {
-                    "restaurantId": 1,
+                    "restaurantId": "RES-1",
                     "deliveryAddress": "인천시",
                     "userLatitude": 12.11,
                     "userLongitude": 22.22,
