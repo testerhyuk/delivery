@@ -26,9 +26,9 @@ public class RestaurantEntity {
     private String address;
     @Column(nullable = false)
     private String category;
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 18, scale = 14)
     private BigDecimal longitude;
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 18, scale = 14)
     private BigDecimal latitude;
     @Column(nullable = true)
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -13,5 +13,4 @@ public class ResponseRestaurant {
     private String category;
     private BigDecimal longitude;
     private BigDecimal latitude;
-    private String eumCard;
 }
