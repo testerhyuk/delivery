@@ -39,7 +39,7 @@ public class MemberEntity {
     @Enumerated(EnumType.STRING)
     private Set<Role> roles = new HashSet<>();
 
-    private Long restaurantId;
+    private String restaurantId;
 
     // 일반 사용자 가입 전용 팩토리
     public static MemberEntity createUserMember(Long id, String email, String name, String provider, String providerId) {
@@ -65,6 +65,20 @@ public class MemberEntity {
         memberEntity.provider = provider;
         memberEntity.providerId = providerId;
         memberEntity.addRole(Role.RIDER);
+
+        return memberEntity;
+    }
+
+    // 판매점 가입 전용 팩토리
+    public static MemberEntity createSellerMember(Long id, String email, String name, String provider, String providerId) {
+        MemberEntity memberEntity = new MemberEntity();
+        memberEntity.id = id;
+        memberEntity.memberId = Snowflake.prefixedId("member", id);
+        memberEntity.email = email;
+        memberEntity.name = name;
+        memberEntity.provider = provider;
+        memberEntity.providerId = providerId;
+        memberEntity.addRole(Role.SELLER);
 
         return memberEntity;
     }
