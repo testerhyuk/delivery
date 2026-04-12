@@ -11,6 +11,7 @@ import java.util.Set;
 public class MemberResponse {
     private Long id;
     private String memberId;
+    private String restaurantId;
     private String email;
     private String name;
     private String address;

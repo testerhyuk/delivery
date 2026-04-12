@@ -36,7 +36,7 @@ public class CustomOAuth2AuthorizationRequestResolver implements OAuth2Authoriza
         String memberType = request.getParameter("member_type");
 
         if (memberType != null) {
-            if (!memberType.equals("user") && !memberType.equals("rider")) {
+            if (!memberType.equals("user") && !memberType.equals("rider") && !memberType.equals("seller")) {
                 throw new IllegalArgumentException("Invalid member_type: " + memberType);
             }
 

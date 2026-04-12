@@ -47,9 +47,15 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             String userNameAttributeName = registrationId.equals("naver") ? "response" : "sub";
             OAuth2Attributes oAuth2Attributes = OAuth2Attributes.of(registrationId, userNameAttributeName, rawAttributes);
 
-            MemberResponse member = "rider".equals(memberType) ?
-                    memberService.joinRider(oAuth2Attributes.getEmail(), oAuth2Attributes.getName(), oAuth2Attributes.getProvider(), oAuth2Attributes.getProviderId()) :
-                    memberService.joinUser(oAuth2Attributes.getEmail(), oAuth2Attributes.getName(), oAuth2Attributes.getProvider(), oAuth2Attributes.getProviderId());
+            MemberResponse member = null;
+
+            if ("rider".equals(memberType)) {
+                member = memberService.joinRider(oAuth2Attributes.getEmail(), oAuth2Attributes.getName(), oAuth2Attributes.getProvider(), oAuth2Attributes.getProviderId());
+            } else if ("user".equals(memberType)) {
+                member = memberService.joinUser(oAuth2Attributes.getEmail(), oAuth2Attributes.getName(), oAuth2Attributes.getProvider(), oAuth2Attributes.getProviderId());
+            } else if ("seller".equals(memberType)) {
+                member = memberService.joinSeller(oAuth2Attributes.getEmail(), oAuth2Attributes.getName(), oAuth2Attributes.getProvider(), oAuth2Attributes.getProviderId());
+            }
 
             String accessToken = jwtTokenProvider.createToken(member.getId(), member.getRoles());
             String refreshToken = jwtTokenProvider.createRefreshToken(member.getId());
