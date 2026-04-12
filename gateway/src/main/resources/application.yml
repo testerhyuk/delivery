@@ -25,24 +25,24 @@ spring:
           routes:
             # 주문
             - id: order-service
-              uri: http://localhost:9091
+              uri: http://localhost:9100
               predicates:
                 - Path=/order-service/**
               filters:
                 - AuthenticationFilter
             # 음식점
             - id: restaurant-service
-              uri: http://localhost:9099
+              uri: http://localhost:9101
               predicates:
                 - Path=/restaurant-service/**
             # 회원 (인증X)
             - id: user-public
-              uri: http://localhost:9093
+              uri: http://localhost:9099
               predicates:
-                - Path=/login/**, /oauth2/**, /auth/**
+                - Path=/login/**, /oauth2/**, /auth/**, /dummy/**
             # 회원
             - id: user-service
-              uri: http://localhost:9093
+              uri: http://localhost:9099
               predicates:
                 - Path=/user-service/**
               filters:
@@ -52,6 +52,13 @@ spring:
               uri: http://localhost:9094
               predicates:
                 - Path=/pay-service/**
+              filters:
+                - AuthenticationFilter
+            # 배달 웹소켓
+            - id: rider-ws
+              uri: http://localhost:9095
+              predicates:
+                - Path=/ws/rider
               filters:
                 - AuthenticationFilter
             # 배달 기사
@@ -66,6 +73,13 @@ spring:
               uri: http://localhost:9096
               predicates:
                 - Path=/settlement-service/**
+              filters:
+                - AuthenticationFilter
+            # 판매자 웹소켓
+            - id: seller-ws
+              uri: http://localhost:9098
+              predicates:
+                - Path=/ws/seller
               filters:
                 - AuthenticationFilter
             # 판매자
