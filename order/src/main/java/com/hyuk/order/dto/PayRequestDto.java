@@ -9,7 +9,7 @@ public class PayRequestDto {
     private String paymentKey;
     private String orderId;
     private String userId;
-    private Long restaurantId;
+    private String restaurantId;
     private Long amount;
     private List<RequestOrderItems> orderItems;
 

@@ -67,7 +67,7 @@ public class OrderOutboxService {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional
     public void saveSendToSellerEvent(String orderId, String status, SellerResponseDto response) {
         try {
             Map<String, Object> data = Map.of(

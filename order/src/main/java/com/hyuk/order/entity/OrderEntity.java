@@ -26,7 +26,7 @@ public class OrderEntity {
     @Column(nullable = false)
     private String userId;
     @Column(nullable = false)
-    private Long restaurantId;
+    private String restaurantId;
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
     @Column(nullable = false)
@@ -42,7 +42,7 @@ public class OrderEntity {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItems> orderItems = new ArrayList<>();
 
-    public static OrderEntity create(Long id, String userId, Long restaurantId, Integer totalPrice, String deliveryAddress,
+    public static OrderEntity create(Long id, String userId, String restaurantId, Integer totalPrice, String deliveryAddress,
                                      BigDecimal userLatitude, BigDecimal userLongitude, List<OrderItems> orderItems) {
         OrderEntity orderEntity = new OrderEntity();
         orderEntity.id = id;

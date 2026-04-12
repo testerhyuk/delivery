@@ -1,14 +1,16 @@
 package com.hyuk.order.messaging;
 
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hyuk.order.dto.PayConfirmedRequestDto;
 import com.hyuk.order.service.OrderService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
@@ -17,7 +19,7 @@ public class KafkaConsumer {
     private final OrderService orderService;
     private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "pay-events.public.pay_outbox", groupId = "order-service-group")
+    @KafkaListener(topics = "pay-events.public.pay_outbox", groupId = "order-service-pay-group")
     public void onPayEvent(String message) {
         try {
             JsonNode payload = objectMapper.readTree(message).path("payload").path("after");
@@ -39,6 +41,8 @@ public class KafkaConsumer {
                 payConfirmedRequestDto.setPayStatus(status);
 
                 orderService.moneyPaid(payConfirmedRequestDto);
+
+                log.info("[Order Consumer] 결제 완료 처리 성공 orderId={}", orderId);
             } else if (status.equals("CANCEL")) {
                 orderService.cancelOrder(orderId);
             }
@@ -47,7 +51,7 @@ public class KafkaConsumer {
         }
     }
 
-    @KafkaListener(topics = "seller-events.public.seller_outbox", groupId = "order-service-group")
+    @KafkaListener(topics = "seller-events.public.seller_outbox", groupId = "order-service-seller-group")
     public void onSellerEvent(String message) {
         try {
             JsonNode payload = objectMapper.readTree(message).path("payload").path("after");
@@ -58,7 +62,7 @@ public class KafkaConsumer {
 
             String status = payload.path("event_type").asText("");
             JsonNode dataNode = objectMapper.readTree(payload.path("payload").asText("{}"));
-            long orderId = dataNode.path("orderId").asLong(-1L);
+            long orderId = resolveOrderPkFromSellerPayload(dataNode);
             if (orderId < 0) {
                 throw new IllegalArgumentException("seller event orderId is invalid");
             }
@@ -73,7 +77,7 @@ public class KafkaConsumer {
         }
     }
 
-    @KafkaListener(topics = "rider-events.public.rider_outbox", groupId = "order-service-group")
+    @KafkaListener(topics = "rider-events.public.rider_outbox", groupId = "order-service-rider-group")
     public void onRiderEvent(String message) {
         try {
             JsonNode payload = objectMapper.readTree(message).path("payload").path("after");
@@ -91,9 +95,29 @@ public class KafkaConsumer {
 
             if (status.equals("COMPLETED")) {
                 orderService.completeOrder(orderId);
+            } else if (status.equals("DELIVERING")) {
+                orderService.updateToDelivering(orderId);
             }
         } catch (JsonProcessingException | RuntimeException e) {
             log.error("[Rider Consumer] 배달 완료 이벤트 처리 오류 발생 : {}", e.getMessage());
+        }
+    }
+
+    private static long resolveOrderPkFromSellerPayload(JsonNode dataNode) {
+        long fromBody = dataNode.path("responseData").path("id").asLong(-1L);
+        if (fromBody >= 0) {
+            return fromBody;
+        }
+        String raw = dataNode.path("orderId").asText("");
+        if (raw.isBlank()) {
+            return -1L;
+        }
+        int u = raw.lastIndexOf('_');
+        String tail = u >= 0 ? raw.substring(u + 1) : raw;
+        try {
+            return Long.parseLong(tail);
+        } catch (NumberFormatException e) {
+            return -1L;
         }
     }
 }
