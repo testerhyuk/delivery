@@ -34,4 +34,8 @@ public class Menu {
 
         return menu;
     }
+
+    protected void confirmRiderMenu(RiderEntity rider) {
+        this.rider = rider;
+    }
 }

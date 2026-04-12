@@ -3,23 +3,22 @@ package com.hyuk.rider.dto;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @Builder
-public class RequestOrder {
+public class ResponseDelivery {
     private Long id;
+    private String riderId;
+    private String orderId;
     private String restaurantId;
-    private String userId;
     private Integer totalPrice;
     private String deliveryAddress;
-    private LocalDateTime orderAt;
-    private List<RequestOrderItems> orderItems;
+    private List<ResponseDelivery.ResponseDeliveryOrderItems> orderItems;
 
     @Data
     @Builder
-    public static class RequestOrderItems {
+    public static class ResponseDeliveryOrderItems {
         private String menuId;
         private String menuName;
         private Integer price;
