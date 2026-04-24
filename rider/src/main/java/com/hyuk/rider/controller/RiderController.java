@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.*;
 public class RiderController {
     private final RiderService riderService;
 
-    @PostMapping("/complete")
-    public ResponseEntity<Void> completeDelivery(@RequestBody RequestOrder order) {
-        riderService.completeDelivery(order);
+    @PostMapping("/complete/{orderId}")
+    public ResponseEntity<Void> completeDelivery(@PathVariable String orderId) {
+        riderService.completeDelivery(orderId);
 
         return ResponseEntity.ok().build();
     }
@@ -24,6 +24,12 @@ public class RiderController {
             @PathVariable String orderId,
             @RequestHeader("userId") String userId) {
         riderService.acceptDelivery(orderId, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/start/{orderId}")
+    public ResponseEntity<Void> startDelivery(@PathVariable String orderId) {
+        riderService.startDelivery(orderId);
         return ResponseEntity.ok().build();
     }
 }

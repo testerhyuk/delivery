@@ -27,8 +27,8 @@ public class RiderServiceImpl implements RiderService {
     private final ObjectMapper objectMapper;
 
     @Override
-    public void completeDelivery(RequestOrder request) {
-        RiderEntity rider = riderRepository.findByOrderId(String.valueOf(request.getId()));
+    public void completeDelivery(String orderId) {
+        RiderEntity rider = riderRepository.findByOrderId(orderId);
 
         if (rider == null) {
             throw new RuntimeException("배달 정보를 찾을 수 없습니다.");
@@ -39,6 +39,35 @@ public class RiderServiceImpl implements RiderService {
         ResponseOrder response = convertToResponseOrder(rider);
 
         riderOutboxService.completeDeliveryEvent(response);
+    }
+
+    @Override
+    public void startDelivery(String orderId) {
+        RiderEntity riderEntity = riderRepository.findByOrderId(orderId);
+
+        if (riderEntity == null) throw new RuntimeException("배달 정보 없음");
+
+        ResponseDelivery response = ResponseDelivery.builder()
+                .id(riderEntity.getId())
+                .riderId(riderEntity.getRiderId())
+                .orderId(riderEntity.getOrderId())
+                .restaurantId(riderEntity.getRestaurantId())
+                .totalPrice(riderEntity.getPrice())
+                .deliveryAddress(riderEntity.getDeliveryAddress())
+                .detailAddress(riderEntity.getDetailAddress())
+                .userLatitude(riderEntity.getUserLatitude())
+                .userLongitude(riderEntity.getUserLongitude())
+                .orderItems(riderEntity.getMenuList().stream().map(
+                        menu -> ResponseDelivery.ResponseDeliveryOrderItems.builder()
+                                .menuId(menu.getMenuId())
+                                .menuName(menu.getMenuName())
+                                .price(menu.getPrice())
+                                .quantity(menu.getQuantity())
+                                .build()
+                ).toList())
+                .build();
+
+        riderOutboxService.deliveryStartEvent(response);
     }
 
     @Override
@@ -74,6 +103,9 @@ public class RiderServiceImpl implements RiderService {
                     String.valueOf(request.getId()),
                     request.getRestaurantId(),
                     request.getDeliveryAddress(),
+                    request.getDetailAddress(),
+                    request.getUserLatitude(),
+                    request.getUserLongitude(),
                     request.getTotalPrice(),
                     menuList
             );
@@ -89,6 +121,9 @@ public class RiderServiceImpl implements RiderService {
                     .restaurantId(riderEntity.getRestaurantId())
                     .totalPrice(riderEntity.getPrice())
                     .deliveryAddress(riderEntity.getDeliveryAddress())
+                    .detailAddress(riderEntity.getDetailAddress())
+                    .userLatitude(riderEntity.getUserLatitude())
+                    .userLongitude(riderEntity.getUserLongitude())
                     .orderItems(riderEntity.getMenuList().stream().map(
                             menu -> ResponseDelivery.ResponseDeliveryOrderItems.builder()
                                     .menuId(menu.getMenuId())
@@ -99,7 +134,7 @@ public class RiderServiceImpl implements RiderService {
                     ).toList())
                     .build();
 
-            riderOutboxService.deliveryStartEvent(response);
+            riderOutboxService.deliveryReadyEvent(response);
 
         } catch (Exception e) {
             throw new RuntimeException("배달 수락 처리 실패: " + e.getMessage());
@@ -113,6 +148,9 @@ public class RiderServiceImpl implements RiderService {
                 .restaurantId(entity.getRestaurantId())
                 .totalPrice(entity.getPrice())
                 .deliveryAddress(entity.getDeliveryAddress())
+                .detailAddress(entity.getDetailAddress())
+                .userLatitude(entity.getUserLatitude())
+                .userLongitude(entity.getUserLongitude())
                 .orderItems(entity.getMenuList().stream().map(
                         menu -> ResponseOrder.ResponseOrderItems.builder()
                                 .menuId(menu.getId())

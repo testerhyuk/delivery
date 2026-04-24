@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,19 +25,27 @@ public class RiderEntity {
     private String orderId;
     private String restaurantId;
     private String deliveryAddress;
+    private String detailAddress;
+    private BigDecimal userLatitude;
+    private BigDecimal userLongitude;
     private Integer price;
     @OneToMany(mappedBy = "rider", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Menu> menuList = new ArrayList<>();
     private LocalDateTime deliveryStartedAt;
     private LocalDateTime deliveryFinishedAt;
 
-    public static RiderEntity create(Long id, String orderId, String restaurantId, String deliveryAddress, Integer price, List<Menu> menuList) {
+    public static RiderEntity create(Long id, String orderId, String restaurantId, String deliveryAddress,
+                                     String detailAddress, BigDecimal userLatitude, BigDecimal userLongitude,
+                                     Integer price, List<Menu> menuList) {
         RiderEntity rider = new RiderEntity();
         rider.id = id;
         rider.riderId = Snowflake.prefixedId("rider", id);
         rider.orderId = orderId;
         rider.restaurantId = restaurantId;
         rider.deliveryAddress = deliveryAddress;
+        rider.detailAddress = detailAddress;
+        rider.userLatitude = userLatitude;
+        rider.userLongitude = userLongitude;
         rider.price = price;
 
         for (Menu menu : menuList) {
