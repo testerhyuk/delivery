@@ -18,7 +18,7 @@ public class RestaurantEntity {
     @Id
     @Column(nullable = false, unique = true)
     private Long id;
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, name = "restaurant_id")
     private String restaurantId;
     @Column(nullable = false)
     private String name;
@@ -30,7 +30,6 @@ public class RestaurantEntity {
     private BigDecimal longitude;
     @Column(nullable = false, precision = 18, scale = 14)
     private BigDecimal latitude;
-    @Column(nullable = true)
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MenuEntity> menus = new ArrayList<>();
 

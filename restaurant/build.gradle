@@ -25,6 +25,18 @@ dependencies {
     implementation 'org.json:json:20231013'
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
+    // Micrometer Tracing
+    implementation 'io.micrometer:micrometer-tracing-bridge-otel'
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
+
+    // Spring Boot Actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    implementation 'io.github.openfeign:feign-hc5:13.1'
+    implementation 'io.github.openfeign:feign-micrometer:13.1'
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
     implementation project(':snowflake')
 }
 

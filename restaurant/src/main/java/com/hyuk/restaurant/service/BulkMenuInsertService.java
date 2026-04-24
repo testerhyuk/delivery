@@ -69,13 +69,11 @@ public class BulkMenuInsertService {
                     insertedRestaurantCount++;
                     Map<String, Integer> menus = categoryTemplate.get(category);
 
-                    Long restaurantPk = restaurant.getId();
-
                     menus.forEach((menuName, price) -> allMenus.add(MenuEntity.create(
                             snowflake.nextId(),
                             menuName,
                             price,
-                            entityManager.getReference(RestaurantEntity.class, restaurantPk)
+                            restaurant
                     )));
                 }
 
