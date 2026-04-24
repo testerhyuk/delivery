@@ -9,7 +9,6 @@ import com.hyuk.pay.entity.enums.PayStatus;
 import com.hyuk.pay.repository.PayRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -25,16 +24,15 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional
 public class PayServiceImpl implements PayService {
     private final PayRepository payRepository;
     private final TossPayClient tossPayClient;
     private final Snowflake snowflake;
-    private final ModelMapper modelMapper;
-    private final OrderServiceClient orderServiceClient;
     private final PayLogService payLogService;
     private final PayOutboxService payOutboxService;
+    private final PayConfirmWriter payConfirmWriter;
 
+    @Transactional
     @Override
     public ResponsePayReady readyPayment(RequestOrder requestOrder) {
         Optional<PayEntity> existingPay = payRepository.findByOrderId(requestOrder.getOrderId());
@@ -50,7 +48,7 @@ public class PayServiceImpl implements PayService {
                 payHistory.updateAmount(requestOrder.getAmount());
             }
 
-            return modelMapper.map(payHistory, ResponsePayReady.class);
+            return convertToReadyResponse(payHistory);
         }
 
         PayEntity entity = PayEntity.processPay(
@@ -61,7 +59,7 @@ public class PayServiceImpl implements PayService {
 
         payRepository.save(entity);
 
-        return modelMapper.map(entity, ResponsePayReady.class);
+        return convertToReadyResponse(entity);
     }
 
     @Override
@@ -71,6 +69,17 @@ public class PayServiceImpl implements PayService {
             backoff = @Backoff(delay = 1000, multiplier = 2)
     )
     public ResponseOrder confirmPayment(RequestOrder requestOrder) {
+        PayEntity entity = validateAndGet(requestOrder);
+
+        ResponseOrder response = tossPayClient.confirm(requestOrder);
+
+        payConfirmWriter.saveConfirmResult(entity, response, requestOrder.getOrderId());
+
+        return response;
+    }
+
+    @Transactional(readOnly = true)
+    public PayEntity validateAndGet(RequestOrder requestOrder) {
         PayEntity entity = payRepository.findByOrderId(requestOrder.getOrderId())
                 .orElseThrow(() -> new RuntimeException("결제 정보가 존재하지 않습니다. 주문번호: " + requestOrder.getOrderId()));
 
@@ -80,7 +89,7 @@ public class PayServiceImpl implements PayService {
 
         // 동일 요청 방어 코드
         if (PayStatus.DONE.equals(entity.getStatus())) {
-            return modelMapper.map(entity, ResponseOrder.class);
+            return entity;
         }
 
         if (!entity.getAmount().equals(requestOrder.getAmount())) {
@@ -88,21 +97,7 @@ public class PayServiceImpl implements PayService {
                     entity.getAmount(), requestOrder.getAmount()));
         }
 
-        ResponseOrder response = tossPayClient.confirm(requestOrder);
-
-        String cardNumber = response.getCard() != null ? response.getCard().getNumber() : null;
-        entity.completedPayment(response.getPaymentKey(), response.getMethod(),
-                cardNumber, response.getVat(), parseApprovedAt(response.getApprovedAt()));
-
-        payRepository.save(entity);
-
-        PayConfirmedRequestDto payConfirmedRequestDto = new PayConfirmedRequestDto();
-        payConfirmedRequestDto.setOrderId(requestOrder.getOrderId());
-        payConfirmedRequestDto.setPayStatus(PayStatus.DONE.name());
-
-        payOutboxService.saveToOrderUpdatePaid(payConfirmedRequestDto);
-
-        return response;
+        return entity;
     }
 
     @Recover
@@ -121,18 +116,7 @@ public class PayServiceImpl implements PayService {
         throw new RuntimeException("결제 승인 최종 실패: " + e.getMessage());
     }
 
-    private LocalDateTime parseApprovedAt(String approvedAt) {
-        if (approvedAt == null || approvedAt.isBlank()) {
-            return null;
-        }
-
-        try {
-            return OffsetDateTime.parse(approvedAt).toLocalDateTime();
-        } catch (DateTimeParseException ignored) {
-            return LocalDateTime.parse(approvedAt);
-        }
-    }
-
+    @Transactional
     @Override
     public void cancelPayment(TossCancelResponse response, boolean publishEvent) {
         try {
@@ -155,11 +139,13 @@ public class PayServiceImpl implements PayService {
         }
     }
 
+    @Transactional
     @Override
     public void userCancelProcess(String orderId, String reason) {
         cancelByOrderId(orderId, reason, true);
     }
 
+    @Transactional
     @Override
     public void cancelByOrderId(String orderId, String reason, boolean publishEvent) {
         PayEntity entity = payRepository.findByOrderId(orderId)
@@ -172,5 +158,15 @@ public class PayServiceImpl implements PayService {
         Map<String, String> tossRequest = Map.of("cancelReason", reason);
         TossCancelResponse response = tossPayClient.cancel(entity.getPaymentKey(), tossRequest);
         this.cancelPayment(response, publishEvent);
+    }
+
+    private ResponsePayReady convertToReadyResponse(PayEntity entity) {
+        return ResponsePayReady.builder()
+                .id(entity.getId())
+                .orderId(entity.getOrderId())
+                .amount(entity.getAmount())
+                .status(entity.getStatus())
+                .paymentKey(entity.getPaymentKey())
+                .build();
     }
 }

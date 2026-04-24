@@ -1,0 +1,9 @@
+toss:
+  api:
+    url: http://localhost:9999/v1/payments
+
+TOSS_SECRET_KEY: test_dummy_secret_key_for_mockserver
+
+#logging:
+#  level:
+#    com.hyuk.pay.client: DEBUG

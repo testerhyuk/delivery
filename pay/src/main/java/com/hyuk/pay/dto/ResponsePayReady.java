@@ -1,9 +1,11 @@
 package com.hyuk.pay.dto;
 
 import com.hyuk.pay.entity.enums.PayStatus;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class ResponsePayReady {
     private Long id;
     private String payId;
