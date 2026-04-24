@@ -12,7 +12,7 @@ public class RefreshTokenService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public void saveRefreshToken(Long memberId, String refreshToken, Long expirationTime) {
+    public void saveRefreshToken(String memberId, String refreshToken, Long expirationTime) {
         redisTemplate.opsForValue().set(
                 "RT:" + memberId,
                 refreshToken,
@@ -21,11 +21,11 @@ public class RefreshTokenService {
         );
     }
 
-    public String getRefreshToken(Long memberId) {
+    public String getRefreshToken(String memberId) {
         return (String) redisTemplate.opsForValue().get("RT:" + memberId);
     }
 
-    public void deleteRefreshToken(Long memberId) {
+    public void deleteRefreshToken(String memberId) {
         redisTemplate.delete("RT:" + memberId);
     }
 }
