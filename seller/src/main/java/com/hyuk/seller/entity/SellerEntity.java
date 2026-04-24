@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,13 +23,17 @@ public class SellerEntity {
     private String orderId;
     private String restaurantId;
     private String deliveryAddress;
+    private String detailAddress;
+    private BigDecimal userLatitude;
+    private BigDecimal userLongitude;
     private Integer price;
     @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Menu> menu = new ArrayList<>();
     private LocalDateTime orderAt;
     private LocalDateTime deliveredAt;
 
-    public static SellerEntity create(Long id, String orderId, String restaurantId, String deliveryAddress, Integer price, List<Menu> menu,
+    public static SellerEntity create(Long id, String orderId, String restaurantId, String deliveryAddress, String detailAddress,
+                                      BigDecimal userLatitude, BigDecimal userLongitude, Integer price, List<Menu> menu,
                                       LocalDateTime orderAt, LocalDateTime deliveredAt) {
         SellerEntity sellerEntity = new SellerEntity();
         sellerEntity.id = id;
@@ -36,6 +41,9 @@ public class SellerEntity {
         sellerEntity.orderId = orderId;
         sellerEntity.restaurantId = restaurantId;
         sellerEntity.deliveryAddress = deliveryAddress;
+        sellerEntity.detailAddress = detailAddress;
+        sellerEntity.userLatitude = userLatitude;
+        sellerEntity.userLongitude = userLongitude;
         sellerEntity.price = price;
 
         for (Menu m : menu) {
