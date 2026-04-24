@@ -12,5 +12,7 @@ public interface OrderService {
     void updateToCooking(Long orderId);
     void updateToDelivering(Long orderId);
     OrderCompleteResponseDto completeOrder(Long orderId);
+    String findUserIdByOrderId(Long orderId);
+    void updateToDeliveryStart(Long orderId);
 
 }
