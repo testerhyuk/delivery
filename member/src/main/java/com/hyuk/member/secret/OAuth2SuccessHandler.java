@@ -57,12 +57,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 member = memberService.joinSeller(oAuth2Attributes.getEmail(), oAuth2Attributes.getName(), oAuth2Attributes.getProvider(), oAuth2Attributes.getProviderId());
             }
 
-            String accessToken = jwtTokenProvider.createToken(member.getId(), member.getRoles());
-            String refreshToken = jwtTokenProvider.createRefreshToken(member.getId());
+            String accessToken = jwtTokenProvider.createToken(member.getMemberId(), member.getRoles());
+            String refreshToken = jwtTokenProvider.createRefreshToken(member.getMemberId());
 
-            refreshTokenService.saveRefreshToken(member.getId(), refreshToken, jwtTokenProvider.getExpiration(refreshToken));
+            refreshTokenService.saveRefreshToken(member.getMemberId(), refreshToken, jwtTokenProvider.getExpiration(refreshToken));
 
-            Long userId = member.getId();
+            String userId = member.getMemberId();
 
             response.addHeader("Set-Cookie", "accessToken=" + accessToken + "; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax");
             ResponseCookie loginCookie = ResponseCookie.from("isLoggedIn", "true")
