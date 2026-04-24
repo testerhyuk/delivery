@@ -1,5 +1,5 @@
 {
-  "name": "order-outbox-connector",
+  "name": "seller-outbox-connector",
   "config": {
     "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
     "database.hostname": "postgres",
@@ -7,11 +7,11 @@
     "database.user": "hyuk",
     "database.password": "${DATABASE_PASSWORD}",
     "database.dbname": "delivery_eum",
-    "database.server.name": "order",
-    "table.include.list": "public.order_outbox",
-    "topic.prefix": "order-events",
+    "database.server.name": "seller",
+    "table.include.list": "public.seller_outbox",
+    "topic.prefix": "seller-events",
     "plugin.name": "pgoutput",
-    "slot.name": "order_outbox_slot",
+    "slot.name": "seller_outbox_slot",
     "snapshot.mode": "never"
   }
 }
