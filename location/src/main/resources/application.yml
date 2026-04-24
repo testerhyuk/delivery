@@ -1,0 +1,38 @@
+server:
+  port: 9102
+
+spring:
+  profiles:
+    active: dev
+  application:
+    name: location-service
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    hikari:
+      maximum-pool-size: 40
+      minimum-idle: 20
+      connection-timeout: 10000
+    url: jdbc:postgresql://localhost:5432/delivery_eum
+    username: hyuk
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: location-service-rider-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+nominatim:
+  url: http://localhost:8088
