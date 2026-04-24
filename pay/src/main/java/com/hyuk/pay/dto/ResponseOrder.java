@@ -1,9 +1,11 @@
 package com.hyuk.pay.dto;
 
 import com.hyuk.pay.entity.enums.PayStatus;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class ResponseOrder {
     private String paymentKey;
     private String orderId;
@@ -18,6 +20,7 @@ public class ResponseOrder {
     private Long vat;
 
     @Data
+    @Builder
     public static class ResponseToss {
         private String number;
     }

@@ -13,6 +13,7 @@ import java.util.Map;
 
 @FeignClient(
         name = "tossClient",
+//        url = "${toss.api.url}",
         url = "https://api.tosspayments.com/v1/payments",
         configuration = TossFeignConfig.class
 )

@@ -2,10 +2,7 @@ package com.hyuk.pay.entity;
 
 import com.hyuk.common.Snowflake;
 import com.hyuk.pay.entity.enums.PayStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +20,7 @@ public class PayHistoryEntity {
     private String payHistoryId;
     @Column(nullable = false)
     private Long payId;
+    @Enumerated(EnumType.STRING)
     private PayStatus payStatus;
     private String failReason;
     private LocalDateTime failedTime;
