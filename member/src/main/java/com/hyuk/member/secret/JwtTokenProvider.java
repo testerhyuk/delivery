@@ -37,9 +37,9 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String createToken(Long memberId, Set<Role> roles) {
+    public String createToken(String memberId, Set<Role> roles) {
         return Jwts.builder()
-                .subject(String.valueOf(memberId))
+                .subject(memberId)
                 .claim("roles", roles.stream().map(Role::getKey).collect(Collectors.toList()))
                 .issuedAt(new Date())
                 .expiration(new Date(new Date().getTime() + tokenValidityInMilliseconds))
@@ -47,9 +47,9 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public String createRefreshToken(Long memberId) {
+    public String createRefreshToken(String memberId) {
         return Jwts.builder()
-                .subject(String.valueOf(memberId))
+                .subject(memberId)
                 .issuedAt(new Date())
                 .expiration(new Date(new Date().getTime() + refreshValidityInMilliseconds))
                 .signWith(key)

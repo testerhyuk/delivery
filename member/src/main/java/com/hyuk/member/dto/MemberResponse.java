@@ -4,6 +4,7 @@ import com.hyuk.member.entity.enums.Role;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.Set;
 
 @Data
@@ -16,5 +17,7 @@ public class MemberResponse {
     private String name;
     private String address;
     private String detailAddress;
+    private BigDecimal latitude;
+    private BigDecimal longitude;
     private Set<Role> roles;
 }
