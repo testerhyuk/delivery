@@ -75,11 +75,12 @@ public class KafkaConsumer {
                     "deliveryAddress", order.getDeliveryAddress(),
                     "orderItems", order.getOrderItems()
             );
-
+            log.info("WebSocket 알림 전송 시도: restaurantId={}", order.getRestaurantId());
             sellerWebSocketHandler.sendToSeller(
                     order.getRestaurantId(),
                     notification
             );
+            log.info("WebSocket 알림 전송 완료");
         } catch (JsonProcessingException | RuntimeException e) {
             log.error("Order에서 이벤트를 수신하지 못했습니다 : {}", e.getMessage());
         }

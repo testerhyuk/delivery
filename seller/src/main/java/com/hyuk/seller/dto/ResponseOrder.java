@@ -3,6 +3,7 @@ package com.hyuk.seller.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -14,6 +15,9 @@ public class ResponseOrder {
     private String restaurantId;
     private Integer totalPrice;
     private String deliveryAddress;
+    private String detailAddress;
+    private BigDecimal userLatitude;
+    private BigDecimal userLongitude;
     private LocalDateTime orderAt;
     private List<ResponseOrderItems> orderItems;
 

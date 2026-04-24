@@ -35,6 +35,9 @@ public class SellerServiceImpl implements SellerService {
                 businessOrderId,
                 requestOrder.getRestaurantId(),
                 requestOrder.getDeliveryAddress(),
+                requestOrder.getDetailAddress(),
+                requestOrder.getUserLatitude(),
+                requestOrder.getUserLongitude(),
                 requestOrder.getTotalPrice(),
                 menuList,
                 requestOrder.getOrderAt(),
@@ -79,6 +82,9 @@ public class SellerServiceImpl implements SellerService {
                 .restaurantId(entity.getRestaurantId())
                 .totalPrice(entity.getPrice())
                 .deliveryAddress(entity.getDeliveryAddress())
+                .detailAddress(entity.getDetailAddress())
+                .userLatitude(entity.getUserLatitude())
+                .userLongitude(entity.getUserLongitude())
                 .orderAt(entity.getOrderAt())
                 .orderItems(entity.getMenu().stream().map(
                         menu -> ResponseOrder.ResponseOrderItems.builder()
