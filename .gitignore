@@ -53,3 +53,6 @@ out/
 /rider/.env
 /delivery-front/.env
 /delivery-front/.gitignore
+/connect/d2utmpabmBfC
+/restaurant/redis_cpu.log
+/location/.env
