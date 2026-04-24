@@ -36,3 +36,7 @@ spring:
     redis:
       host: localhost
       port: 6379
+
+logging:
+  level:
+    com.hyuk.rider.service: DEBUG

@@ -46,7 +46,7 @@ public class RiderOutboxService {
     }
 
     @Transactional
-    public void deliveryStartEvent(ResponseDelivery response) {
+    public void deliveryReadyEvent(ResponseDelivery response) {
         try {
             Map<String, Object> eventData = Map.of(
                     "orderId", response.getOrderId(),
@@ -59,6 +59,29 @@ public class RiderOutboxService {
             RiderOutbox outbox = RiderOutbox.create(
                     snowflake.nextId(),
                     "DELIVERING",
+                    payload
+            );
+
+            riderOutboxRepository.save(outbox);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("배달 시작 이벤트 직렬화 실패", e);
+        }
+    }
+
+    @Transactional
+    public void deliveryStartEvent(ResponseDelivery response) {
+        try {
+            Map<String, Object> eventData = Map.of(
+                    "orderId", response.getOrderId(),
+                    "status", "DELIVERY_START",
+                    "responseData", response
+            );
+
+            String payload = objectMapper.writeValueAsString(eventData);
+
+            RiderOutbox outbox = RiderOutbox.create(
+                    snowflake.nextId(),
+                    "DELIVERY_START",
                     payload
             );
 

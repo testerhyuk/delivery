@@ -3,6 +3,7 @@ package com.hyuk.rider.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -14,6 +15,9 @@ public class ResponseDelivery {
     private String restaurantId;
     private Integer totalPrice;
     private String deliveryAddress;
+    private String detailAddress;
+    private BigDecimal userLatitude;
+    private BigDecimal userLongitude;
     private List<ResponseDelivery.ResponseDeliveryOrderItems> orderItems;
 
     @Data
