@@ -20,9 +20,20 @@ spring:
                 allowedHeaders: "*"
                 allowCredentials: true
           httpclient:
+            pool:
+              type: elastic
+              max-connections: 200
+              max-idle-time: 10000
             connect-timeout: 1000
-            response-timeout: 5s
+            response-timeout: 30s
           routes:
+            # 주문 웹소켓
+            - id: order-ws
+              uri: http://localhost:9100
+              predicates:
+                - Path=/ws/order
+              filters:
+                - AuthenticationFilter
             # 주문
             - id: order-service
               uri: http://localhost:9100
@@ -89,6 +100,11 @@ spring:
                 - Path=/seller-service/**
               filters:
                 - AuthenticationFilter
+            # 위치
+            - id: location-service
+              uri: http://localhost:9102
+              predicates:
+                - Path=/location-service/**
 
 springdoc:
   swagger-ui:
@@ -121,7 +137,7 @@ management:
     gateway:
       access: none
 
-logging:
-  level:
-    org.springframework.cloud.gateway: TRACE
-    org.springframework.http.server.reactive: DEBUG
+#logging:
+#  level:
+#    org.springframework.cloud.gateway: TRACE
+#    org.springframework.http.server.reactive: DEBUG
