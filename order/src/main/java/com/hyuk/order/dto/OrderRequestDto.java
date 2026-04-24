@@ -18,10 +18,16 @@ public class OrderRequestDto {
     private String restaurantId;
     @NotBlank(message = "주소 정보는 필수입니다")
     private String deliveryAddress;
+    @NotBlank(message = "상세 주소 정보는 필수입니다")
+    private String detailAddress;
     @NotNull
     private BigDecimal userLatitude;
     @NotNull
     private BigDecimal userLongitude;
+    @NotNull
+    private BigDecimal restaurantLatitude;
+    @NotNull
+    private BigDecimal restaurantLongitude;
     @NotEmpty
     @Valid
     private List<OrderItemsRequestDto> orderItems;

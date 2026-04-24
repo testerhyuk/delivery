@@ -33,6 +33,12 @@ public class OrderEntity {
     private Integer totalPrice;
     @Column(nullable = false, length = 500)
     private String deliveryAddress;
+    @Column(nullable = false, length = 100)
+    private String detailAddress;
+    @Column(nullable = false, precision = 18, scale = 14)
+    private BigDecimal restaurantLatitude;
+    @Column(nullable = false, precision = 18, scale = 14)
+    private BigDecimal restaurantLongitude;
     @Column(nullable = false, precision = 18, scale = 14)
     private BigDecimal userLatitude;
     @Column(nullable = false, precision = 18, scale = 14)
@@ -43,6 +49,7 @@ public class OrderEntity {
     private List<OrderItems> orderItems = new ArrayList<>();
 
     public static OrderEntity create(Long id, String userId, String restaurantId, Integer totalPrice, String deliveryAddress,
+                                     String detailAddress, BigDecimal restaurantLatitude, BigDecimal restaurantLongitude,
                                      BigDecimal userLatitude, BigDecimal userLongitude, List<OrderItems> orderItems) {
         OrderEntity orderEntity = new OrderEntity();
         orderEntity.id = id;
@@ -52,6 +59,9 @@ public class OrderEntity {
         orderEntity.orderStatus = OrderStatus.PENDING;
         orderEntity.totalPrice = totalPrice;
         orderEntity.deliveryAddress = deliveryAddress;
+        orderEntity.detailAddress = detailAddress;
+        orderEntity.restaurantLatitude = restaurantLatitude;
+        orderEntity.restaurantLongitude = restaurantLongitude;
         orderEntity.userLatitude = userLatitude;
         orderEntity.userLongitude = userLongitude;
         orderEntity.orderAt = LocalDateTime.now();
@@ -78,6 +88,10 @@ public class OrderEntity {
 
     public void updateToDelivering() {
         this.orderStatus = OrderStatus.DELIVERING;
+    }
+
+    public void updateToDeliveryStart() {
+        this.orderStatus = OrderStatus.DELIVERY_START;
     }
 
     public void updateToCompleted() {

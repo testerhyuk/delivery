@@ -15,6 +15,7 @@ public class OrderResponseDto {
     private String orderStatus;
     private Integer totalPrice;
     private String deliveryAddress;
+    private String detailAddress;
     private BigDecimal userLatitude;
     private BigDecimal userLongitude;
     private LocalDateTime orderAt;

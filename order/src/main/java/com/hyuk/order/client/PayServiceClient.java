@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(
         name = "pay-service",
-        url = "${PAY_SERVICE_URL:http://localhost:8000/pay-service}"
+//        url = "${PAY_SERVICE_URL:http://localhost:8000/pay-service}"
+        url = "http://localhost:9094/pay-service"
 )
 public interface PayServiceClient {
     @PostMapping("/pay/ready")

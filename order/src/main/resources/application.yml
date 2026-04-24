@@ -1,4 +1,8 @@
 server:
+  tomcat:
+    threads:
+      max: 250
+      min-spare: 50
   port: 9100
 
 spring:
@@ -6,7 +10,14 @@ spring:
     active: dev
   application:
     name : order-service
+  threads:
+    virtual:
+      enabled: true
   datasource:
+    hikari:
+      maximum-pool-size: 40
+      minimum-idle: 20
+      connection-timeout: 10000
     url: jdbc:postgresql://localhost:5432/delivery_eum
     username: hyuk
     password: ${POSTGRES_PASSWORD}
@@ -14,10 +25,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         dialect: org.hibernate.dialect.PostgreSQLDialect
   kafka:
     bootstrap-servers: localhost:9092
@@ -32,3 +43,23 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+logging:
+  level:
+    com.hyuk.order.messaging: DEBUG
+
+#management:
+#  tracing:
+#    sampling:
+#      probability: 1.0
+#  otlp:
+#    tracing:
+#      endpoint: http://localhost:4318/v1/traces
+#
+#feign:
+#  observation:
+#    enabled: true
+#  httpclient:
+#    enabled: false
+#  hc5:
+#    enabled: true

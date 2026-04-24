@@ -33,6 +33,7 @@ public class OrderServiceImpl implements OrderService{
     public OrderResponseDto createOrder(OrderRequestDto orderRequestDto, String userId) {
         int totalPrice = 0;
         List<OrderItems> orderItemsList = new ArrayList<>();
+
         List<ResponseMenu> menuBoard = restaurantServiceClient.getMenu(orderRequestDto.getRestaurantId());
 
         for (OrderRequestDto.OrderItemsRequestDto itemDto : orderRequestDto.getOrderItems()) {
@@ -62,8 +63,11 @@ public class OrderServiceImpl implements OrderService{
                 orderRequestDto.getRestaurantId(),
                 totalPrice,
                 orderRequestDto.getDeliveryAddress(),
+                orderRequestDto.getDetailAddress(),
                 orderRequestDto.getUserLatitude(),
                 orderRequestDto.getUserLongitude(),
+                orderRequestDto.getRestaurantLatitude(),
+                orderRequestDto.getRestaurantLongitude(),
                 orderItemsList
         );
 
@@ -106,6 +110,11 @@ public class OrderServiceImpl implements OrderService{
                     .orderStatus(entity.getOrderStatus())
                     .totalPrice(entity.getTotalPrice())
                     .deliveryAddress(entity.getDeliveryAddress())
+                    .detailAddress(entity.getDetailAddress())
+                    .userLatitude(entity.getUserLatitude())
+                    .userLongitude(entity.getUserLongitude())
+                    .restaurantLatitude(entity.getRestaurantLatitude())
+                    .restaurantLongitude(entity.getRestaurantLongitude())
                     .orderAt(entity.getOrderAt())
                     .orderItems(entity.getOrderItems().stream()
                             .map(item -> {
@@ -171,6 +180,19 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
+    public void updateToDeliveryStart(Long orderId) {
+        OrderEntity entity = orderRepository.findById(orderId).orElseThrow(
+                () -> new RuntimeException("주문 정보를 찾을 수 없습니다.")
+        );
+
+        if (entity.getOrderStatus() != OrderStatus.DELIVERING) {
+            throw new RuntimeException("현재 배달 준비가 되어있지 않습니다.");
+        }
+
+        entity.updateToDeliveryStart();
+    }
+
+    @Override
     public OrderCompleteResponseDto completeOrder(Long orderId) {
         OrderEntity entity = orderRepository.findById(orderId).orElseThrow(
                 () -> new RuntimeException("주문 정보를 찾을 수 없습니다.")
@@ -180,7 +202,7 @@ public class OrderServiceImpl implements OrderService{
             return modelMapper.map(entity, OrderCompleteResponseDto.class);
         }
 
-        if (entity.getOrderStatus() != OrderStatus.DELIVERING) {
+        if (entity.getOrderStatus() != OrderStatus.DELIVERY_START) {
             throw new RuntimeException("배송 중인 주문만 완료 처리할 수 있습니다.");
         }
 
@@ -189,5 +211,12 @@ public class OrderServiceImpl implements OrderService{
         orderOutboxService.saveOrderCompleteEvent(String.valueOf(orderId), "COMPLETED");
 
         return modelMapper.map(entity, OrderCompleteResponseDto.class);
+    }
+
+    @Override
+    public String findUserIdByOrderId(Long orderId) {
+        return orderRepository.findById(orderId)
+                .map(OrderEntity::getUserId)
+                .orElseThrow(() -> new RuntimeException("주문 정보 없음: " + orderId));
     }
 }
