@@ -1,6 +1,7 @@
 package com.hyuk.member.service;
 
 import com.hyuk.common.Snowflake;
+import com.hyuk.member.dto.AddressRequest;
 import com.hyuk.member.dto.AddressResponse;
 import com.hyuk.member.dto.MemberResponse;
 import com.hyuk.member.entity.MemberEntity;
@@ -65,34 +66,34 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public MemberResponse createAddress(Long id, String address, String detailAddress) {
-        MemberEntity member = memberRepository.findById(id).orElse(null);
+    public MemberResponse createAddress(String memberId, AddressRequest request) {
+        MemberEntity member = memberRepository.findByMemberId(memberId).orElse(null);
 
         if (member == null) {
             throw new UsernameNotFoundException("회원 정보를 찾을 수 없습니다");
         }
 
-        member.addAddress(address, detailAddress);
+        member.addAddress(request.getAddress(), request.getDetailAddress(), request.getLatitude(), request.getLongitude());
 
         return modelMapper.map(member, MemberResponse.class);
     }
 
     @Override
-    public MemberResponse updateAddress(Long id, String address, String detailAddress) {
-        MemberEntity member = memberRepository.findById(id).orElse(null);
+    public MemberResponse updateAddress(String memberId, AddressRequest request) {
+        MemberEntity member = memberRepository.findByMemberId(memberId).orElse(null);
 
         if (member == null) {
             throw new UsernameNotFoundException("회원 정보를 찾을 수 없습니다");
         }
 
-        member.updateAddress(address, detailAddress);
+        member.updateAddress(request.getAddress(), request.getDetailAddress(), request.getLatitude(), request.getLongitude());
 
         return modelMapper.map(member, MemberResponse.class);
     }
 
     @Override
-    public AddressResponse getAddress(Long id) {
-        MemberEntity member = memberRepository.findById(id).orElse(null);
+    public AddressResponse getAddress(String memberId) {
+        MemberEntity member = memberRepository.findByMemberId(memberId).orElse(null);
 
         if (member == null) {
             throw new RuntimeException("회원 정보를 찾을 수 없습니다");
@@ -102,8 +103,8 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public boolean hasAddress(Long id) {
-        MemberEntity member = memberRepository.findById(id).orElse(null);
+    public boolean hasAddress(String memberId) {
+        MemberEntity member = memberRepository.findByMemberId(memberId).orElse(null);
 
         if (member == null) {
             throw new RuntimeException("회원 정보를 찾을 수 없습니다");
@@ -115,8 +116,8 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public MemberResponse getMyInfo(Long id) {
-        MemberEntity member = memberRepository.findById(id)
+    public MemberResponse getMyInfo(String memberId) {
+        MemberEntity member = memberRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다"));
         return modelMapper.map(member, MemberResponse.class);
     }
