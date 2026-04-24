@@ -1,0 +1,26 @@
+[
+  {
+    "httpRequest": {
+      "method": "POST",
+      "path": "/v1/payments/confirm"
+    },
+    "httpResponse": {
+      "statusCode": 200,
+      "headers": {
+        "Content-Type": ["application/json; charset=utf-8"]
+      },
+      "body": {
+        "type": "TEMPLATE",
+        "templateType": "MUSTACHE",
+        "template": "{\"paymentKey\":\"mock_pk_12345\",\"orderId\":\"{{jsonPath request.body '$.orderId'}}\",\"status\":\"DONE\",\"method\":\"카드\",\"approvedAt\":\"2025-01-01T12:00:00+09:00\",\"totalAmount\":20000,\"vat\":1818,\"card\":{\"number\":\"4321-****-****-1234\"},\"failure\":null}"
+      },
+      "delay": {
+        "timeUnit": "MILLISECONDS",
+        "value": 100
+      }
+    },
+    "times": {
+      "unlimited": true
+    }
+  }
+]
