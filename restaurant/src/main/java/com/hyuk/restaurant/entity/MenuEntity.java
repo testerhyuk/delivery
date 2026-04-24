@@ -19,7 +19,7 @@ public class MenuEntity implements Persistable<Long> {
     private String menuId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "restaurant_id")
+    @JoinColumn(name = "restaurant_id", referencedColumnName = "restaurant_id")
     private RestaurantEntity restaurant;
 
     @Column(nullable = false)

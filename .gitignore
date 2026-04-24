@@ -38,6 +38,7 @@ out/
 /order/.env
 
 /data/pgdata
+/data/ngrinder-controller
 /gateway/.env
 /restaurant/.env
 /member/.env
