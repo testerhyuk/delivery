@@ -1,4 +1,4 @@
-# 🍔 배달의 음 (Delivery Service Platform)
+# 🍔 배달 서비스 (Delivery Service Platform)
 
 MSA 기반 배달 플랫폼 백엔드 프로젝트입니다. 실제 배달 서비스의 핵심 기능인 주문, 결제, 배달 추적, 위치 기반 서비스를 구현했습니다.
 
